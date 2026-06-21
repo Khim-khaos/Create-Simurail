@@ -15,7 +15,7 @@ public class SimurailPhysicsConfig extends SimurailBaseConfig {
 	public final ConfigFloat bogeyAngularTiltFactor = f(50, 0, Float.MAX_VALUE, "bogeyAngularTiltFactor", Units.acceleration, Comments.bogeyAngularTiltFactor);
 	public final ConfigFloat bogeyAngularSpringFrequency = f(15, 0, Float.MAX_VALUE, "bogeyAngularSpringFrequency", Units.angularVelocity, Comments.bogeyAngularSpringFrequency);
 	public final ConfigFloat bogeyAngularSpringDampingRate = f(1.2F, 0, Float.MAX_VALUE, "bogeyAngularSpringDampingRate", Comments.bogeyAngularSpringDampingRate);
-	public final ConfigFloat bogeyAngularSpringMaxMoment = f(50, 0, Float.MAX_VALUE, "bogeyAngularSpringMaxMoment", Units.moment, Comments.bogeyAngularSpringMaxMoment);
+	public final ConfigFloat bogeyAngularSpringMaxTorque = f(5000, 0, Float.MAX_VALUE, "bogeyAngularSpringMaxTorque", Units.torque, Comments.bogeyAngularSpringMaxTorque);
 
 	public final ConfigGroup axle = group(1, "axle", "Physics Bogey Axles");
 	public final ConfigFloat axleSpacingUpdateTime = f(2, 0, Float.MAX_VALUE, "axleSpacingUpdateTime", Units.time, Comments.axleSpacingUpdateTime);
@@ -47,10 +47,10 @@ public class SimurailPhysicsConfig extends SimurailBaseConfig {
 		static String bogeyVerticalSpringDampingRate = "Vertical spring damping rate between the Physics Bogey and its pivot.";
 		static String bogeyLateralSpringFrequency = "Lateral spring frequency between the Physics Bogey and its pivot.";
 		static String bogeyLateralSpringDampingRate = "Lateral spring damping rate between the Physics Bogey and its pivot.";
-		static String bogeyAngularTiltFactor = "Factor to determine the tilt between of the Physics Bogey. Tilt is atan(speed² * curvature / factor).";
+		static String bogeyAngularTiltFactor = "Factor to determine the tilt between of the Physics Bogey. Tilt is atan(speed² * curvature / factor), limited to 10 degrees.";
 		static String bogeyAngularSpringFrequency = "Angular spring frequency between the Physics Bogey and its pivot.";
 		static String bogeyAngularSpringDampingRate = "Angular spring damping rate between the Physics Bogey and its pivot.";
-		static String bogeyAngularSpringMaxMoment = "Angular spring maximum moment between the Physics Bogey and its pivot.";
+		static String bogeyAngularSpringMaxTorque = "Angular spring maximum torque between the Physics Bogey and its pivot.";
 
 		static String axleSpacingUpdateTime = "Time to update the axle spacing when changed for the axles of the Physics Bogey.";
 		static String axlePassiveLinearDamping = "Passive linear damping between an axle of the Physics Bogey and its track.";

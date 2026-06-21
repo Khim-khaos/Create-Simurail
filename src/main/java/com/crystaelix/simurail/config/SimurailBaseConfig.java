@@ -13,10 +13,9 @@ public abstract class SimurailBaseConfig extends ConfigBase {
 		new CValue<Boolean, BooleanValue>(config.getName(), builder -> {
 			config.depth = depth;
 			config.registerAll(builder);
-			if(config.depth > depth) {
-				builder.pop(config.depth - depth);
+			if(config.depth > this.depth) {
+				builder.pop(config.depth - this.depth);
 			}
-			this.depth--;
 			return null;
 		});
 		children.add(config);

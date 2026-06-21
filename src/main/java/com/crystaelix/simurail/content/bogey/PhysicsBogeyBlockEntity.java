@@ -554,8 +554,10 @@ public class PhysicsBogeyBlockEntity extends KineticBlockEntity implements Namea
 
 		double kLateral = getSignedLateralCurvature();
 		double speed = getMovementSpeed();
+		double centAcc = speed * speed * kLateral;
+
 		double tiltFactor = config.bogeyAngularTiltFactor.get();
-		double tilt = Math.clamp(Math.atan(speed * speed * kLateral / tiltFactor), -TILT_LIMIT, TILT_LIMIT) * (isInverted() ? -1 : 1);
+		double tilt = Math.clamp(Math.atan(centAcc / tiltFactor), -TILT_LIMIT, TILT_LIMIT);
 
 		double angXLimit = options.enabled && options.allowYawOffset && options.allowPitchOffset && hasTrack ? ANGULAR_X_LIMIT : 0;
 		pivotJoint.setLimit(ConstraintJointAxis.ANGULAR_X, -angXLimit - tilt, angXLimit - tilt);
@@ -582,6 +584,7 @@ public class PhysicsBogeyBlockEntity extends KineticBlockEntity implements Namea
 		queuedForce.zero();
 		queuedTorque.zero();
 
+		ActiveBogeyCounts bogeyCounts = getActiveBogeyCounts(subLevel);
 		SimurailPhysicsConfig config = SimurailConfig.SERVER.physics;
 
 		// Linear Y
@@ -589,14 +592,15 @@ public class PhysicsBogeyBlockEntity extends KineticBlockEntity implements Namea
 			double offset = localPivotOffset.y;
 			double velocity = globalRelLinVel.dot(globalBasis.vertical);
 
-			double normalMass = 1 / massData.getInverseNormalMass(localCenter, SimurailMath.DIR_YP);
+			double mass = massData.getMass();
 
 			double frequency = config.bogeyVerticalSpringFrequency.get();
 			double dampingRate = config.bogeyVerticalSpringDampingRate.get();
-			double stiffness = normalMass * frequency * frequency;
-			double damping = normalMass * frequency * dampingRate * 2;
+			double stiffness = mass * frequency * frequency;
+			double damping = mass * frequency * dampingRate * 2;
 
 			double forceMag = stiffness * offset - damping * velocity;
+			forceMag /= bogeyCounts.activeVertical;
 
 			queuedForce.fma(forceMag * timeStep, globalBasis.vertical);
 		}
@@ -606,14 +610,16 @@ public class PhysicsBogeyBlockEntity extends KineticBlockEntity implements Namea
 			double offset = localPivotOffset.dot(getLateral());
 			double velocity = globalRelLinVel.dot(globalBasis.lateral);
 
-			double normalMass = 1 / massData.getInverseNormalMass(localCenter, getLateral());
+			double mass = massData.getMass();
 
 			double frequency = config.bogeyLateralSpringFrequency.get();
 			double dampingRate = config.bogeyLateralSpringDampingRate.get();
-			double stiffness = normalMass * frequency * frequency;
-			double damping = normalMass * frequency * dampingRate * 2;
+			double stiffness = mass * frequency * frequency;
+			double damping = mass * frequency * dampingRate * 2;
 
 			double forceMag = stiffness * offset - damping * velocity;
+			forceMag /= bogeyCounts.activeLateral;
+
 			queuedForce.fma(forceMag * timeStep, globalBasis.lateral);
 		}
 
@@ -621,21 +627,28 @@ public class PhysicsBogeyBlockEntity extends KineticBlockEntity implements Namea
 		if(options.allowYawOffset && options.allowPitchOffset) {
 			double kLateral = getSignedLateralCurvature();
 			double speed = getMovementSpeed();
+			double centAcc = speed * speed * kLateral;
+
 			double tiltFactor = config.bogeyAngularTiltFactor.get();
-			double tilt = Math.atan(speed * speed * kLateral / tiltFactor) * (isInverted() ? -1 : 1);
+			double tilt = Math.clamp(Math.atan(centAcc / tiltFactor), -TILT_LIMIT, TILT_LIMIT);
+
+			double torqueOffset = massData.getCenterOfMass().y() - localCenter.y();
+			double centTorque = massData.getMass() * centAcc * torqueOffset;
 
 			double offset = SimurailMath.angle(globalBasis.vertical, globalPivotVert, globalBasis.direction) + tilt;
 			double velocity = globalRelAngVel.dot(globalBasis.direction);
 
-			double maxMoment = config.bogeyAngularSpringMaxMoment.get();
-			double moment = Math.min(maxMoment, SimurailMath.moment(massData, localCenter, localDir));
+			double moment = SimurailMath.moment(massData, localCenter, localDir);
 
 			double frequency = config.bogeyAngularSpringFrequency.get();
 			double dampingRate = config.bogeyAngularSpringDampingRate.get();
 			double stiffness = moment * frequency * frequency;
 			double damping = moment * frequency * dampingRate * 2;
 
-			double torqueMag = stiffness * offset - damping * velocity;
+			double torqueMag = centTorque + stiffness * offset - damping * velocity;
+			torqueMag /= bogeyCounts.activeRoll;
+			double maxTorque = config.bogeyAngularSpringMaxTorque.get();
+			torqueMag = Math.clamp(torqueMag, -maxTorque, maxTorque);
 
 			queuedTorque.fma(torqueMag * timeStep, globalBasis.direction);
 		}
@@ -658,6 +671,30 @@ public class PhysicsBogeyBlockEntity extends KineticBlockEntity implements Namea
 	protected boolean isActive() {
 		return options.enabled && axleFront.hasTrack() && axleBack.hasTrack();
 	}
+
+	protected ActiveBogeyCounts getActiveBogeyCounts(ServerSubLevel subLevel) {
+		int activeVertical = 0;
+		int activeLateral = 0;
+		int activeRoll = 0;
+		for(BlockEntitySubLevelActor actor : subLevel.getPlot().getBlockEntityActors()) {
+			if(actor instanceof PhysicsBogeyBlockEntity bogey) {
+				if(bogey.isActive()) {
+					if(bogey.options.allowVerticalOffset) {
+						++activeVertical;
+					}
+					if(getFacing().getAxis() == bogey.getFacing().getAxis() && bogey.options.allowLateralOffset) {
+						++activeLateral;
+					}
+					if(getFacing().getAxis() == bogey.getFacing().getAxis() && bogey.options.allowYawOffset && bogey.options.allowPitchOffset) {
+						++activeRoll;
+					}
+				}
+			}
+		}
+		return new ActiveBogeyCounts(activeVertical, activeLateral, activeRoll);
+	}
+
+	private record ActiveBogeyCounts(int activeVertical, int activeLateral, int activeRoll) {}
 
 	public double getControlStrength() {
 		return Math.clamp((isInverted() ? level.getSignal(getBlockPos().below(), Direction.DOWN) : level.getSignal(getBlockPos().above(), Direction.UP)) / 15D, 0, 1);
