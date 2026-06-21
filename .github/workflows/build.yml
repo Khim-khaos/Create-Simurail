@@ -38,7 +38,12 @@ jobs:
         run: chmod +x ./gradlew
 
       - name: Build
-        run: ./gradlew assemble
+        run: |
+          if [ "${{ inputs.publish }}" = "true" ]; then
+            ./gradlew assemble --stacktrace
+          else
+            ./gradlew assemble --stacktrace -PcommitHash="${{ env.SHORT_SHA }}"
+          fi
 
       - name: Upload Artifacts
         uses: actions/upload-artifact@v7

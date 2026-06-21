@@ -131,9 +131,10 @@ def modName = "simurail"
 def modId = "simurail"
 def specVersion = "0"
 def vendor = "thelm"
-
 group = "com.crystaelix.simurail"
-version = "0.0.0"
+def baseVersion = "0.0.0-a"
+
+version = hasProperty("commitHash") ? "${baseVersion}+${commitHash}" : baseVersion
 
 def archivesName = "${modName}-${mcVersion}"
 base.archivesName = archivesName
