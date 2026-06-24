@@ -29,7 +29,6 @@ import net.neoforged.fml.ModContainer;
 import net.neoforged.fml.common.Mod;
 import net.neoforged.fml.event.config.ModConfigEvent;
 import net.neoforged.fml.event.lifecycle.FMLCommonSetupEvent;
-import net.neoforged.neoforge.capabilities.RegisterCapabilitiesEvent;
 
 @Mod(Simurail.MOD_ID)
 public class Simurail {
@@ -65,11 +64,6 @@ public class Simurail {
 			SimurailCompat.BLOCKSBOGIES.ifLoaded(() -> () -> SimurailBlocksBogiesCompat.onCommonSetupLate());
 			SimurailCompat.RAILWAYS.ifLoaded(() -> () -> SimurailRailwaysCompat.onCommonSetupLate());
 		});
-	}
-
-	@SubscribeEvent
-	public void onRegisterCapabilities(RegisterCapabilitiesEvent event) {
-		SimurailBlockEntities.registerCapabilities(event);
 	}
 
 	@SubscribeEvent

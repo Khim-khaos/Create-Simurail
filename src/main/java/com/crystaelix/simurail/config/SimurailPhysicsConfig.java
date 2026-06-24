@@ -4,13 +4,12 @@ public class SimurailPhysicsConfig extends SimurailBaseConfig {
 
 	public final ConfigGroup bogey = group(1, "bogey", "Physics Bogeys");
 	public final ConfigFloat bogeyPivotMass = f(1, 0, Float.MAX_VALUE, "bogeyPivotMass", Units.mass, Comments.bogeyPivotMass);
-	public final ConfigFloat bogeyPassiveLinearDamping = f(100, 0, Float.MAX_VALUE, "bogeyPassiveLinearDamping", Units.damping, Comments.bogeyPassiveLinearDamping);
 	public final ConfigFloat bogeyPassiveAngularDamping = f(1, 0, Float.MAX_VALUE, "bogeyPassiveAngularDamping", Units.angularDamping, Comments.bogeyPassiveAngularDamping);
-	public final ConfigFloat bogeyVerticalSpringFrequency = f(10, 0, Float.MAX_VALUE, "bogeyVerticalSpringFrequency", Units.angularVelocity, Comments.bogeyVerticalSpringFrequency);
-	public final ConfigFloat bogeyVerticalSpringDampingRate = f(1, 0, Float.MAX_VALUE, "bogeyVerticalSpringDampingRate", Comments.bogeyVerticalSpringDampingRate);
+	public final ConfigFloat bogeyVerticalSpringFrequency = f(50, 0, Float.MAX_VALUE, "bogeyVerticalSpringFrequency", Units.angularVelocity, Comments.bogeyVerticalSpringFrequency);
+	public final ConfigFloat bogeyVerticalSpringDampingRate = f(1.2F, 0, Float.MAX_VALUE, "bogeyVerticalSpringDampingRate", Comments.bogeyVerticalSpringDampingRate);
 	public final ConfigFloat bogeyVerticalSpringMaxForce = f(10000, 0, Float.MAX_VALUE, "bogeyVerticalSpringMaxForce", Units.force, Comments.bogeyVerticalSpringMaxForce);
 	public final ConfigFloat bogeyLateralSpringFrequency = f(10, 0, Float.MAX_VALUE, "bogeyLateralSpringFrequency", Units.angularVelocity, Comments.bogeyLateralSpringFrequency);
-	public final ConfigFloat bogeyLateralSpringDampingRate = f(1, 0, Float.MAX_VALUE, "bogeyLateralSpringDampingRate", Comments.bogeyLateralSpringDampingRate);
+	public final ConfigFloat bogeyLateralSpringDampingRate = f(1.2F, 0, Float.MAX_VALUE, "bogeyLateralSpringDampingRate", Comments.bogeyLateralSpringDampingRate);
 	public final ConfigFloat bogeyLateralSpringMaxForce = f(10000, 0, Float.MAX_VALUE, "bogeyLateralSpringMaxForce", Units.force, Comments.bogeyLateralSpringMaxForce);
 	public final ConfigFloat bogeyAngularTiltFactor = f(50, 0, Float.MAX_VALUE, "bogeyAngularTiltFactor", Units.acceleration, Comments.bogeyAngularTiltFactor);
 	public final ConfigFloat bogeyAngularSpringFrequency = f(15, 0, Float.MAX_VALUE, "bogeyAngularSpringFrequency", Units.angularVelocity, Comments.bogeyAngularSpringFrequency);
@@ -31,8 +30,10 @@ public class SimurailPhysicsConfig extends SimurailBaseConfig {
 	public final ConfigFloat axleTrackRecheckTime = f(3, 0, Float.MAX_VALUE, "axleTrackRecheckTime", Units.time, Comments.axleTrackRecheckTime);
 
 	public final ConfigGroup coupler = group(1, "coupler", "Train Couplers");
-	public final ConfigFloat couplerPassiveLinearDamping = f(100, 0, Float.MAX_VALUE, "couplerPassiveLinearDamping", Units.damping, Comments.couplerPassiveLinearDamping);
+	public final ConfigFloat couplerPassiveLinearDamping = f(10, 0, Float.MAX_VALUE, "couplerPassiveLinearDamping", Units.damping, Comments.couplerPassiveLinearDamping);
 	public final ConfigFloat couplerPassiveAngularDamping = f(1, 0, Float.MAX_VALUE, "couplerPassiveAngularDamping", Units.angularDamping, Comments.couplerPassiveAngularDamping);
+	public final ConfigFloat couplerSpringFrequency = f(15, 0, Float.MAX_VALUE, "couplerSpringFrequency", Units.angularVelocity, Comments.couplerSpringFrequency);
+	public final ConfigFloat couplerSpringDampingRate = f(2, 0, Float.MAX_VALUE, "couplerSpringDampingRate", Comments.couplerSpringDampingRate);
 
 	@Override
 	public String getName() {
@@ -41,7 +42,6 @@ public class SimurailPhysicsConfig extends SimurailBaseConfig {
 
 	static class Comments {
 		static String bogeyPivotMass = "The mass of the pivot of the Physics Bogey.";
-		static String bogeyPassiveLinearDamping = "Passive linear damping between the Physics Bogey and its pivot.";
 		static String bogeyPassiveAngularDamping = "Passive angular damping between the Physics Bogey and its pivot.";
 		static String bogeyVerticalSpringFrequency = "Vertical spring frequency between the Physics Bogey and its pivot.";
 		static String bogeyVerticalSpringDampingRate = "Vertical spring damping rate between the Physics Bogey and its pivot.";
@@ -68,5 +68,7 @@ public class SimurailPhysicsConfig extends SimurailBaseConfig {
 
 		static String couplerPassiveLinearDamping = "Passive linear damping between a Train Coupler and its partner.";
 		static String couplerPassiveAngularDamping = "Passive angular damping between a Train Coupler and its partner.";
+		static String couplerSpringFrequency = "Spring frequency between a Train Coupler and its partner.";
+		static String couplerSpringDampingRate = "Spring damping rate between a Train Coupler and its partner.";
 	}
 }

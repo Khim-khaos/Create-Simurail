@@ -8,6 +8,7 @@ import com.simibubi.create.foundation.block.ProperWaterloggedBlock;
 
 import dev.ryanhcode.sable.api.block.BlockSubLevelAssemblyListener;
 import dev.ryanhcode.sable.api.block.BlockSubLevelCollisionShape;
+import net.createmod.catnip.math.VoxelShaper;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.server.level.ServerLevel;
@@ -31,6 +32,7 @@ import net.minecraft.world.level.block.state.properties.BooleanProperty;
 import net.minecraft.world.level.material.FluidState;
 import net.minecraft.world.phys.BlockHitResult;
 import net.minecraft.world.phys.shapes.CollisionContext;
+import net.minecraft.world.phys.shapes.Shapes;
 import net.minecraft.world.phys.shapes.VoxelShape;
 
 public class AutomaticCouplerBlock extends HorizontalDirectionalBlock implements IBE<AutomaticCouplerBlockEntity>, BlockSubLevelCollisionShape, BlockSubLevelAssemblyListener, ProperWaterloggedBlock, IWrenchable {
@@ -38,14 +40,8 @@ public class AutomaticCouplerBlock extends HorizontalDirectionalBlock implements
 	public static final MapCodec<AutomaticCouplerBlock> CODEC = simpleCodec(AutomaticCouplerBlock::new);
 	public static final BooleanProperty POWERED = BlockStateProperties.POWERED;
 
-	public static final VoxelShape EAST_SHAPE = box(0, 5, 5, 3, 11, 11);
-	public static final VoxelShape WEST_SHAPE = box(13, 5, 5, 16, 11, 11);
-	public static final VoxelShape SOUTH_SHAPE = box(5, 5, 0, 11, 11, 3);
-	public static final VoxelShape NORTH_SHAPE = box(5, 5, 13, 11, 11, 16);
-	public static final VoxelShape EAST_COLLISION_SHAPE = box(0, 5, 5, 0.25, 11, 11);
-	public static final VoxelShape WEST_COLLISION_SHAPE = box(15.75, 5, 5, 16, 11, 11);
-	public static final VoxelShape SOUTH_COLLISION_SHAPE = box(5, 5, 0, 11, 11, 0.25);
-	public static final VoxelShape NORTH_COLLISION_SHAPE = box(5, 5, 15.75, 11, 11, 16);
+	public static final VoxelShaper SHAPES = VoxelShaper.forHorizontal(box(5, 5, 0, 11, 11, 3), Direction.SOUTH);
+	public static final VoxelShaper SUBLEVEL_SHAPES = VoxelShaper.forHorizontal(box(5, 5, 0, 11, 11, 0.25), Direction.SOUTH);
 
 	public AutomaticCouplerBlock(Properties properties) {
 		super(properties);
@@ -88,24 +84,17 @@ public class AutomaticCouplerBlock extends HorizontalDirectionalBlock implements
 
 	@Override
 	protected VoxelShape getShape(BlockState state, BlockGetter level, BlockPos pos, CollisionContext context) {
-		return switch(state.getValue(FACING)) {
-		case EAST -> EAST_SHAPE;
-		case WEST -> WEST_SHAPE;
-		case SOUTH -> SOUTH_SHAPE;
-		case NORTH -> NORTH_SHAPE;
-		case null, default -> throw new IllegalArgumentException("Unexpected value: " + state.getValue(FACING));
-		};
+		return SHAPES.get(state.getValue(FACING));
+	}
+
+	@Override
+	protected VoxelShape getVisualShape(BlockState state, BlockGetter level, BlockPos pos, CollisionContext context) {
+		return SHAPES.get(state.getValue(FACING));
 	}
 
 	@Override
 	public VoxelShape getSubLevelCollisionShape(BlockGetter blockGetter, BlockState state) {
-		return switch(state.getValue(FACING)) {
-		case EAST -> EAST_COLLISION_SHAPE;
-		case WEST -> WEST_COLLISION_SHAPE;
-		case SOUTH -> SOUTH_COLLISION_SHAPE;
-		case NORTH -> NORTH_COLLISION_SHAPE;
-		case null, default -> throw new IllegalArgumentException("Unexpected value: " + state.getValue(FACING));
-		};
+		return SUBLEVEL_SHAPES.get(state.getValue(FACING));
 	}
 
 	@Override

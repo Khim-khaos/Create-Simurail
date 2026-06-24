@@ -459,7 +459,7 @@ public class PhysicsBogeyAxle {
 
 		{
 			double normalMass = 1 / massData.getInverseNormalMass(bogeyTrackFrame.position, bogeyTrackFrame.direction);
-			double friction = 1; // do we want to implement this?
+			double friction = getTrackFriction(trackSegment);
 
 			double brakeStrengthFactor = config.axleBrakeStrengthFactor.get();
 			double brakeStrength = bogey.getBrakeStrength();
@@ -497,6 +497,10 @@ public class PhysicsBogeyAxle {
 			queuedForce.negate();
 			RigidBodyHandle.of(trackSubLevel).applyImpulseAtPoint(trackFrame.position, queuedForce);
 		}
+	}
+
+	protected double getTrackFriction(TrackSegment trackSegment) {
+		return 1;
 	}
 
 	protected void updateWorldForces(ServerSubLevel subLevel, RigidBodyHandle handle, double timeStep) {

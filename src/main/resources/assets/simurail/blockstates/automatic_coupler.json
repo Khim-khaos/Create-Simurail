@@ -16,6 +16,7 @@
 			"model": "simurail:block/coupler/automatic/normal",
 			"y": 0
 		},
+
 		"facing=east,powered=true": {
 			"model": "simurail:block/coupler/automatic/powered",
 			"y": 90

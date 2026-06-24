@@ -247,7 +247,6 @@ public class AutomaticCouplerBlockEntity extends SmartBlockEntity implements Blo
 		if(initialized) {
 			return;
 		}
-
 		initialized = true;
 	}
 
@@ -309,6 +308,8 @@ public class AutomaticCouplerBlockEntity extends SmartBlockEntity implements Blo
 						partner.removeJoint();
 					}
 					if(partner.joint == null) {
+						SimurailPhysicsConfig config = SimurailConfig.SERVER.physics;
+
 						Pose3dc selfPose = subLevel.logicalPose();
 						Pose3dc partnerPose = partnerSubLevel == null ? SimurailMath.POSE_I : partnerSubLevel.logicalPose();
 
@@ -326,9 +327,17 @@ public class AutomaticCouplerBlockEntity extends SmartBlockEntity implements Blo
 
 						double jointLength = this.getLength() + partner.getLength();
 
+						double invMass = subLevel.getMassTracker().getInverseNormalMass(this.jointPos, this.jointDir);
+						double partnerInvMass = partnerSubLevel == null ? 0 : partnerSubLevel.getMassTracker().getInverseNormalMass(partner.jointPos, partner.jointDir);
+						double normalMass = 1 / (invMass + partnerInvMass);
+
+						double frequecy = config.couplerSpringFrequency.get();
+						double dampingRate = config.couplerSpringDampingRate.get();
+						double stiffness = normalMass * frequecy * frequecy;
+						double damping = normalMass * frequecy * dampingRate * 2;
+
 						if(joint == null || !joint.isValid()) {
 							removeJoint();
-							SimurailPhysicsConfig config = SimurailConfig.SERVER.physics;
 							SubLevelPhysicsSystem physics = SubLevelContainer.getContainer(subLevel.getLevel()).physicsSystem();
 							double linearDamping = config.couplerPassiveLinearDamping.get();
 							double angularDamping = config.couplerPassiveAngularDamping.get();
@@ -336,7 +345,8 @@ public class AutomaticCouplerBlockEntity extends SmartBlockEntity implements Blo
 									this.jointPos, partner.jointPos,
 									this.jointRot, partner.jointRot);
 							joint = physics.getPipeline().addConstraint(subLevel, partnerSubLevel, jointConfig);
-							joint.setLimit(ConstraintJointAxis.LINEAR_X, jointLength, jointLength);
+							joint.setLimit(ConstraintJointAxis.LINEAR_X, jointLength - 0.0625, jointLength + 0.0625);
+							joint.setMotor(ConstraintJointAxis.LINEAR_X, jointLength, stiffness, damping, false, 0);
 							joint.setMotor(ConstraintJointAxis.LINEAR_Y, 0, 0, linearDamping, false, 0);
 							joint.setMotor(ConstraintJointAxis.LINEAR_Z, 0, 0, linearDamping, false, 0);
 							joint.setMotor(ConstraintJointAxis.ANGULAR_X, 0, 0, angularDamping, false, 0);
@@ -346,7 +356,8 @@ public class AutomaticCouplerBlockEntity extends SmartBlockEntity implements Blo
 						else {
 							joint.setFrame1(this.jointPos, this.jointRot);
 							joint.setFrame2(partner.jointPos, partner.jointRot);
-							joint.setLimit(ConstraintJointAxis.LINEAR_X, jointLength, jointLength);
+							joint.setLimit(ConstraintJointAxis.LINEAR_X, jointLength - 0.0625, jointLength + 0.0625);
+							joint.setMotor(ConstraintJointAxis.LINEAR_X, jointLength, stiffness, damping, false, 0);
 						}
 					}
 				}
