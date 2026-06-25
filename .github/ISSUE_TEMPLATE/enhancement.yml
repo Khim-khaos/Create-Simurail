@@ -7,6 +7,13 @@ body:
       value: |
         If your idea requires discussion or is complicated, [join our discord](https://discord.crystaelix.com/) before posting a new issue.
 
+  - type: input
+    id: version
+    attributes:
+      label: Simurail version
+    validations:
+      required: true
+
   - type: textarea
     id: problem
     attributes:
