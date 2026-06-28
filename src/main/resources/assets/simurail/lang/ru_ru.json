@@ -37,6 +37,7 @@
 	"gui.simurail.physics_bogey.control.strength": "Усиление",
 	"gui.simurail.physics_bogey.control.strength_inverted": "Инвертированное усиление",
 	"gui.simurail.physics_bogey.stress": "Сила тяги",
+	"gui.simurail.physics_bogey.tilt": "Сила наклона",
 	"gui.simurail.physics_bogey.connector": "Видимость кабеля подключения",
 	"gui.simurail.physics_bogey.connector.visible": "Видим",
 	"gui.simurail.physics_bogey.connector.invisible": "Невидим",

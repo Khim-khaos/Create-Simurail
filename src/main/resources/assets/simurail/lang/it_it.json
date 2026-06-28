@@ -37,6 +37,7 @@
 	"gui.simurail.physics_bogey.control.strength": "Forza",
 	"gui.simurail.physics_bogey.control.strength_inverted": "Forza Invertita",
 	"gui.simurail.physics_bogey.stress": "Forza Trazione",
+	"gui.simurail.physics_bogey.tilt": "Forza Inclinazione",
 	"gui.simurail.physics_bogey.connector": "Visibilità del Cavo Connettore",
 	"gui.simurail.physics_bogey.connector.visible": "Visibile",
 	"gui.simurail.physics_bogey.connector.invisible": "Invisibile",

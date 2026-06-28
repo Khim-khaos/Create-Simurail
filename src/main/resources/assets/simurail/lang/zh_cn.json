@@ -37,6 +37,7 @@
 	"gui.simurail.physics_bogey.control.strength": "驱动强度",
 	"gui.simurail.physics_bogey.control.strength_inverted": "反向驱动强度",
 	"gui.simurail.physics_bogey.stress": "驱动强度",
+	"gui.simurail.physics_bogey.tilt": "倾斜强度",
 	"gui.simurail.physics_bogey.connector": "连接器缆线可见性",
 	"gui.simurail.physics_bogey.connector.visible": "可见",
 	"gui.simurail.physics_bogey.connector.invisible": "不可见",

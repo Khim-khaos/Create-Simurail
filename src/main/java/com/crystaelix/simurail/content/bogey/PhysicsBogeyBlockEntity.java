@@ -68,7 +68,7 @@ public class PhysicsBogeyBlockEntity extends KineticBlockEntity implements Namea
 
 	public static final double LINEAR_Y_LIMIT = 0.5;
 	public static final double LINEAR_Z_LIMIT = 1;
-	public static final double ANGULAR_X_LIMIT = Math.PI / 12;
+	public static final double ANGULAR_X_LIMIT = Math.PI / 9;
 	public static final double ANGULAR_Y_LIMIT = Math.PI / 4;
 	public static final double ANGULAR_Z_LIMIT = Math.PI / 4;
 	public static final double TILT_LIMIT = Math.PI / 18;
@@ -561,30 +561,20 @@ public class PhysicsBogeyBlockEntity extends KineticBlockEntity implements Namea
 	}
 
 	protected void updatePivotLimits(ServerSubLevel subLevel, double timeStep) {
-		SimurailPhysicsConfig config = SimurailConfig.SERVER.physics;
-
 		boolean hasTrack = hasTrack();
 		boolean bothTrack = !isDerailed();
 
 		double linYLimit = options.enabled && options.allowVerticalOffset && hasTrack ? LINEAR_Y_LIMIT : 0;
 		double linZLimit = options.enabled && options.allowLateralOffset && hasTrack ? LINEAR_Z_LIMIT : 0;
+		double angXLimit = options.enabled && hasTrack ? ANGULAR_X_LIMIT : 0;
 		double angYLimit = options.enabled && options.allowYawOffset && hasTrack ? ANGULAR_Y_LIMIT : 0;
 		double angZLimit = options.enabled && options.allowPitchOffset && bothTrack ? ANGULAR_Z_LIMIT : 0;
 
 		pivotJoint.setLimit(ConstraintJointAxis.LINEAR_Y, -linYLimit, linYLimit);
 		pivotJoint.setLimit(ConstraintJointAxis.LINEAR_Z, -linZLimit, linZLimit);
+		pivotJoint.setLimit(ConstraintJointAxis.ANGULAR_X, -angXLimit, angXLimit);
 		pivotJoint.setLimit(ConstraintJointAxis.ANGULAR_Y, -angYLimit, angYLimit);
 		pivotJoint.setLimit(ConstraintJointAxis.ANGULAR_Z, -angZLimit, angZLimit);
-
-		double kLateral = getSignedLateralCurvature();
-		double speed = getMovementSpeed();
-		double centAcc = speed * speed * kLateral;
-
-		double tiltFactor = config.bogeyAngularTiltFactor.get();
-		double tilt = Math.clamp(Math.atan(centAcc / tiltFactor), -TILT_LIMIT, TILT_LIMIT);
-
-		double angXLimit = options.enabled && options.allowYawOffset && options.allowPitchOffset && hasTrack ? ANGULAR_X_LIMIT : 0;
-		pivotJoint.setLimit(ConstraintJointAxis.ANGULAR_X, -angXLimit - tilt, angXLimit - tilt);
 	}
 
 	protected void updateForces(ServerSubLevel subLevel, RigidBodyHandle handle, double timeStep) {
@@ -644,13 +634,13 @@ public class PhysicsBogeyBlockEntity extends KineticBlockEntity implements Namea
 		}
 
 		// Angular X
-		if(options.allowYawOffset && options.allowPitchOffset) {
+		{
 			double kLateral = getSignedLateralCurvature();
 			double speed = getMovementSpeed();
 			double centAcc = speed * speed * kLateral;
 
-			double tiltFactor = config.bogeyAngularTiltFactor.get();
-			double tilt = Math.clamp(Math.atan(centAcc / tiltFactor), -TILT_LIMIT, TILT_LIMIT);
+			double tiltStrength = options.tiltStrength * 0.1;
+			double tilt = Math.clamp(Math.atan(centAcc * tiltStrength), -TILT_LIMIT, TILT_LIMIT);
 
 			double torqueOffset = massData.getCenterOfMass().y() - localCenter.y();
 			offsetCenterOfMass.set(localCenter.x(), massData.getCenterOfMass().y(), localCenter.z());
@@ -660,7 +650,7 @@ public class PhysicsBogeyBlockEntity extends KineticBlockEntity implements Namea
 			double offset = SimurailMath.angle(globalBasis.vertical, globalPivotVert, globalBasis.direction) + tilt;
 			double velocity = globalRelAngVel.dot(globalBasis.direction);
 
-			double moment = SimurailMath.moment(massData, localCenter, localDir);
+			double moment = SimurailMath.moment(massData, localCenter, localDir) / bogeyCounts.activeRoll;
 
 			double frequency = config.bogeyAngularSpringFrequency.get();
 			double dampingRate = config.bogeyAngularSpringDampingRate.get();
@@ -669,7 +659,6 @@ public class PhysicsBogeyBlockEntity extends KineticBlockEntity implements Namea
 			double maxTorque = config.bogeyAngularSpringMaxTorque.get();
 
 			double torqueMag = centTorque + stiffness * offset - damping * velocity;
-			torqueMag /= bogeyCounts.activeRoll;
 			torqueMag = Math.clamp(torqueMag, -maxTorque, maxTorque);
 
 			queuedTorque.fma(torqueMag * timeStep, globalBasis.direction);
@@ -701,9 +690,7 @@ public class PhysicsBogeyBlockEntity extends KineticBlockEntity implements Namea
 					if(getFacing().getAxis() == bogey.getFacing().getAxis() && bogey.options.allowLateralOffset) {
 						++activeLateral;
 					}
-					if(getFacing().getAxis() == bogey.getFacing().getAxis() && bogey.options.allowYawOffset && bogey.options.allowPitchOffset) {
-						++activeRoll;
-					}
+					++activeRoll;
 				}
 			}
 		}

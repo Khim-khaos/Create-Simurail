@@ -100,9 +100,9 @@ public class TrackSegmentHelper {
 								continue;
 							}
 							Pair<Vec3, AxisDirection> checkAxis = checkBlock.getNearestTrackAxis(level, checkPos, checkState, JOMLConversion.toMojang(checkLocalDir));
-							JOMLConversion.toJOML(checkAxis.getFirst(), checkTrackDelta);
-							checkTrackDelta.cross(0, 1, 0, checkTrackLat).normalize();
-							checkTrackLat.cross(checkTrackDelta, checkTrackVert).normalize();
+							JOMLConversion.toJOML(checkAxis.getFirst(), checkTrackDelta).normalize();
+							JOMLConversion.toJOML(checkBlock.getUpNormal(level, checkPos, checkState), checkTrackVert).normalize();
+							checkTrackDelta.cross(checkTrackVert, checkTrackLat).normalize();
 							JOMLConversion.atBottomCenterOf(checkPos, checkTrackCenter).add(0, checkBlock.getElevationAtCenter(level, checkPos, checkState), 0);
 							checkTrackStart.set(checkTrackCenter).fma(-0.5, checkTrackDelta);
 							if(!TrackSegment.inSegmentRange(checkTrackStart, checkTrackDelta, checkTrackVert, checkTrackLat, checkLocalPos, checkLocalVert, inverted)) {

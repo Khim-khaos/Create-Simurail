@@ -31,6 +31,7 @@ public class PhysicsBogeyOptionsScreen extends PhysicsBogeyScreen {
 	public static final Component VERTICAL_TITLE = Component.translatable("gui.simurail.physics_bogey.vertical");
 	public static final Component CONTROL_TITLE = Component.translatable("gui.simurail.physics_bogey.control");
 	public static final Component STRESS_TITLE = Component.translatable("gui.simurail.physics_bogey.stress");
+	public static final Component TILT_TITLE = Component.translatable("gui.simurail.physics_bogey.tilt");
 	public static final Component CONNECTOR_TITLE = Component.translatable("gui.simurail.physics_bogey.connector");
 
 	public static final List<Component> PHYSICS_OPTIONS = List.of(
@@ -76,6 +77,7 @@ public class PhysicsBogeyOptionsScreen extends PhysicsBogeyScreen {
 	private SLabel verticalLabel;
 	private SLabel controlLabel;
 	private SLabel stressLabel;
+	private SLabel tiltLabel;
 	private SLabel connectorLabel;
 
 	private SelectionScrollInput physicsInput;
@@ -84,6 +86,7 @@ public class PhysicsBogeyOptionsScreen extends PhysicsBogeyScreen {
 	private SelectionScrollInput verticalInput;
 	private SelectionScrollInput controlInput;
 	private ScrollInput stressInput;
+	private ScrollInput tiltInput;
 	private SelectionScrollInput connectorInput;
 
 	private IconButton bogeyButton;
@@ -128,7 +131,11 @@ public class PhysicsBogeyOptionsScreen extends PhysicsBogeyScreen {
 		stressLabel.withMargin(5);
 		stressLabel.withShadow();
 
-		connectorLabel = new SLabel(x + 45, y + 155, 109, 18);
+		tiltLabel = new SLabel(x + 45, y + 155, 109, 18);
+		tiltLabel.withMargin(5);
+		tiltLabel.withShadow();
+
+		connectorLabel = new SLabel(x + 45, y + 177, 109, 18);
 		connectorLabel.withMargin(5);
 		connectorLabel.withShadow();
 
@@ -176,18 +183,27 @@ public class PhysicsBogeyOptionsScreen extends PhysicsBogeyScreen {
 		stressInput.setState((int)(options.stress * 2));
 		stressInput.calling(i -> options.setStress(i * 0.5F));
 
-		connectorInput = new SelectionScrollInput(x + 45, y + 155, 109, 18);
+		tiltInput = new ScrollInput(x + 45, y + 155, 109, 18);
+		tiltInput.withRange(0, 101);
+		tiltInput.withShiftStep(5);
+		tiltInput.titled(TILT_TITLE.plainCopy());
+		tiltInput.format(i -> Component.literal(i + "%"));
+		tiltInput.writingTo(tiltLabel);
+		tiltInput.setState((int)(options.tiltStrength * 100));
+		tiltInput.calling(i -> options.setTiltStrength(i * 0.01));
+
+		connectorInput = new SelectionScrollInput(x + 45, y + 177, 109, 18);
 		connectorInput.forOptions(CONNECTOR_OPTIONS);
 		connectorInput.titled(CONNECTOR_TITLE.plainCopy());
 		connectorInput.writingTo(connectorLabel);
 		connectorInput.setState(options.getConnectorType());
 		connectorInput.calling(options::setConnectorType);
 
-		bogeyButton = new IconButton(x + 7, y + 187, SimurailGuiTextures.PHYSICS_BOGEY_OPTIONS_BOGEY_ICON);
+		bogeyButton = new IconButton(x + 7, y + 209, SimurailGuiTextures.PHYSICS_BOGEY_OPTIONS_BOGEY_ICON);
 		bogeyButton.setToolTip(TYPE_TOOLTIP);
 		bogeyButton.withCallback(this::openTypeScreen);
 
-		confirmButton = new IconButton(x + 155, y + 187, AllIcons.I_CONFIRM);
+		confirmButton = new IconButton(x + 155, y + 209, AllIcons.I_CONFIRM);
 		confirmButton.setToolTip(CONFIRM_TOOLTIP);
 		confirmButton.withCallback(this::onConfirm);
 
@@ -198,6 +214,7 @@ public class PhysicsBogeyOptionsScreen extends PhysicsBogeyScreen {
 			addRenderableWidget(verticalInput);
 			addRenderableWidget(controlInput);
 			addRenderableWidget(stressInput);
+			addRenderableWidget(tiltInput);
 		}
 		else {
 			physicsLabel.withTooltip(List.of(
@@ -218,7 +235,12 @@ public class PhysicsBogeyOptionsScreen extends PhysicsBogeyScreen {
 			stressLabel.withTooltip(List.of(
 					STRESS_TITLE.plainCopy().withColor(0x5391E1),
 					COMPUTER_TOOLTIP.plainCopy().withColor(0x96B7E0)));
+			tiltLabel.withTooltip(List.of(
+					TILT_TITLE.plainCopy().withColor(0x5391E1),
+					COMPUTER_TOOLTIP.plainCopy().withColor(0x96B7E0)));
 		}
+
+		addRenderableWidget(connectorInput);
 
 		addRenderableWidget(physicsLabel);
 		addRenderableWidget(rotationLabel);
@@ -226,9 +248,8 @@ public class PhysicsBogeyOptionsScreen extends PhysicsBogeyScreen {
 		addRenderableWidget(verticalLabel);
 		addRenderableWidget(controlLabel);
 		addRenderableWidget(stressLabel);
+		addRenderableWidget(tiltLabel);
 		addRenderableWidget(connectorLabel);
-
-		addRenderableWidget(connectorInput);
 
 		addRenderableWidget(bogeyButton);
 		addRenderableWidget(confirmButton);

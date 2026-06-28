@@ -84,13 +84,24 @@ public class PhysicsBogeyPeripheral extends SyncedPeripheral<PhysicsBogeyBlockEn
 	}
 
 	@LuaFunction
-	public final float getMaxStress() {
+	public final double getMaxStress() {
 		return blockEntity.getOptions().stress;
 	}
 
 	@LuaFunction(mainThread = true)
 	public final void setMaxStress(double stress) {
 		blockEntity.getOptions().stress = (float)stress;
+		blockEntity.setChanged();
+	}
+
+	@LuaFunction
+	public final double getTiltStrength() {
+		return blockEntity.getOptions().tiltStrength;
+	}
+
+	@LuaFunction(mainThread = true)
+	public final void setTiltStrength(double tiltStrength) {
+		blockEntity.getOptions().tiltStrength = tiltStrength;
 		blockEntity.setChanged();
 	}
 
