@@ -591,18 +591,13 @@ public class PhysicsBogeyBlockEntity extends KineticBlockEntity implements Namea
 		Quaterniond rot = subLevel.logicalPose().orientation();
 		globalBasis.orthogonalized(localDir, SimurailMath.DIR_YP).transform(rot);
 		pivotPose.transformNormal(SimurailMath.DIR_YP, globalPivotVert);
-		handle.getLinearVelocity(globalLinVel);
 		handle.getAngularVelocity(globalAngVel);
-		pivotHandle.getLinearVelocity(globalPivotLinVel);
 		pivotHandle.getAngularVelocity(globalPivotAngVel);
-		globalLinVel.sub(globalPivotLinVel, globalRelLinVel);
 		globalAngVel.sub(globalPivotAngVel, globalRelAngVel);
 		MassData massData = subLevel.getMassTracker();
 
-		queuedForce.zero();
 		queuedTorque.zero();
 
-		ActiveBogeyCounts bogeyCounts = getActiveBogeyCounts(subLevel);
 		SimurailPhysicsConfig config = SimurailConfig.SERVER.physics;
 
 		// Linear Y
@@ -647,14 +642,13 @@ public class PhysicsBogeyBlockEntity extends KineticBlockEntity implements Namea
 			double tilt = Math.clamp(Math.atan(centAcc * tiltStrength), -TILT_LIMIT, TILT_LIMIT);
 
 			double torqueOffset = massData.getCenterOfMass().y() - localCenter.y();
-			offsetCenterOfMass.set(localCenter.x(), massData.getCenterOfMass().y(), localCenter.z());
-			double normalMass = 1 / massData.getInverseNormalMass(offsetCenterOfMass, getLateral());
-			double centTorque = normalMass * centAcc * torqueOffset;
+			double mass = massData.getMass();
+			double centTorque = mass * centAcc * torqueOffset;
 
 			double offset = SimurailMath.angle(globalBasis.vertical, globalPivotVert, globalBasis.direction) + tilt;
 			double velocity = globalRelAngVel.dot(globalBasis.direction);
 
-			double moment = SimurailMath.moment(massData, localCenter, localDir) / bogeyCounts.activeRoll;
+			double moment = SimurailMath.moment(massData, localCenter, localDir);
 
 			double frequency = config.bogeyAngularSpringFrequency.get();
 			double dampingRate = config.bogeyAngularSpringDampingRate.get();
@@ -662,7 +656,7 @@ public class PhysicsBogeyBlockEntity extends KineticBlockEntity implements Namea
 			double damping = moment * frequency * dampingRate * 2;
 			double maxTorque = config.bogeyAngularSpringMaxTorque.get();
 
-			double torqueMag = centTorque + stiffness * offset - damping * velocity;
+			double torqueMag = (centTorque + stiffness * offset - damping * velocity) / getActiveBogeyCount(subLevel);
 			torqueMag = Math.clamp(torqueMag, -maxTorque, maxTorque);
 
 			queuedTorque.fma(torqueMag * timeStep, globalBasis.direction);
@@ -681,27 +675,17 @@ public class PhysicsBogeyBlockEntity extends KineticBlockEntity implements Namea
 		return options.enabled && axleFront.hasTrack() && axleBack.hasTrack();
 	}
 
-	protected ActiveBogeyCounts getActiveBogeyCounts(ServerSubLevel subLevel) {
-		int activeVertical = 0;
-		int activeLateral = 0;
-		int activeRoll = 0;
+	protected int getActiveBogeyCount(ServerSubLevel subLevel) {
+		int count = 0;
 		for(BlockEntitySubLevelActor actor : subLevel.getPlot().getBlockEntityActors()) {
 			if(actor instanceof PhysicsBogeyBlockEntity bogey) {
 				if(bogey.isActive()) {
-					if(bogey.options.allowVerticalOffset) {
-						++activeVertical;
-					}
-					if(getFacing().getAxis() == bogey.getFacing().getAxis() && bogey.options.allowLateralOffset) {
-						++activeLateral;
-					}
-					++activeRoll;
+					++count;
 				}
 			}
 		}
-		return new ActiveBogeyCounts(activeVertical, activeLateral, activeRoll);
+		return count;
 	}
-
-	private record ActiveBogeyCounts(int activeVertical, int activeLateral, int activeRoll) {}
 
 	public double getControlStrength() {
 		return Math.clamp((isInverted() ? level.getSignal(getBlockPos().below(), Direction.DOWN) : level.getSignal(getBlockPos().above(), Direction.UP)) / 15D, 0, 1);
@@ -965,13 +949,8 @@ public class PhysicsBogeyBlockEntity extends KineticBlockEntity implements Namea
 	// Mutable physics fields
 	protected Basis3d globalBasis = new Basis3d();
 	protected Vector3d globalPivotVert = new Vector3d();
-	protected Vector3d globalLinVel = new Vector3d();
 	protected Vector3d globalAngVel = new Vector3d();
-	protected Vector3d globalPivotLinVel = new Vector3d();
 	protected Vector3d globalPivotAngVel = new Vector3d();
-	protected Vector3d globalRelLinVel = new Vector3d();
 	protected Vector3d globalRelAngVel = new Vector3d();
-	protected Vector3d offsetCenterOfMass = new Vector3d();
-	protected Vector3d queuedForce = new Vector3d();
 	protected Vector3d queuedTorque = new Vector3d();
 }
