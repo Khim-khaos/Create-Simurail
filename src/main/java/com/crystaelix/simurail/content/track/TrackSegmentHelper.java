@@ -52,7 +52,7 @@ public class TrackSegmentHelper {
 			return new CurvedTrackSegment(edge.node1.getLocation().getDimension(), curve, reverse ? curve.getSegmentCount() - 1 : 0);
 		}
 		else {
-			return new StraightTrackSegment(edge.node1.getLocation(), edge.node2.getLocation(), edge.getTrackMaterial());
+			return new StraightTrackSegment(edge.node1.getLocation(), edge.node2.getLocation(), JOMLConversion.toJOML(edge.node1.getNormal()), edge.getTrackMaterial());
 		}
 	}
 
@@ -70,6 +70,7 @@ public class TrackSegmentHelper {
 		BlockPos trackPos = null;
 		ITrackBlock trackBlock = null;
 		Pair<Vec3, AxisDirection> trackAxis = null;
+		Vector3d trackNormal = new Vector3d();
 
 		MutableBlockPos checkPos = new MutableBlockPos();
 		Vector3d checkLocalPos = new Vector3d();
@@ -119,6 +120,7 @@ public class TrackSegmentHelper {
 								trackPos = checkPos.immutable();
 								trackBlock = checkBlock;
 								trackAxis = checkAxis;
+								trackNormal.set(checkTrackVert);
 							}
 						}
 					}
@@ -134,6 +136,6 @@ public class TrackSegmentHelper {
 			TrackPropagator.onRailAdded(level, trackPos, level.getBlockState(trackPos));
 			return null;
 		}
-		return ObjectDoublePair.of(new StraightTrackSegment(graphLocation.edge.getFirst(), graphLocation.edge.getSecond(), trackBlock.getMaterial()), score);
+		return ObjectDoublePair.of(new StraightTrackSegment(graphLocation.edge.getFirst(), graphLocation.edge.getSecond(), trackNormal, trackBlock.getMaterial()), score);
 	}
 }

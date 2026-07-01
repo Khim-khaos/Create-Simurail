@@ -25,14 +25,15 @@ public final class CurvedTrackSegment extends TrackSegment {
 	final TrackNodeLocation curveStart;
 	final TrackNodeLocation curveEnd;
 
-	public static double segmentT(int segment, BezierConnection curve) {
-		return (double)segment / curve.getSegmentCount();
+	public static double segmentT(double segment, BezierConnection curve) {
+		return segment / curve.getSegmentCount();
 	}
 
 	public CurvedTrackSegment(ResourceKey<Level> dimension, BezierConnection curve, int segment) {
 		super(dimension,
 				JOMLConversion.toJOML(curve.getPosition(segmentT(segment, curve))),
 				JOMLConversion.toJOML(curve.getPosition(segmentT(segment + 1, curve))),
+				JOMLConversion.toJOML(curve.getNormal(segmentT(segment + 0.5, curve))),
 				curve.getMaterial());
 		this.curve = curve;
 		this.segment = segment;

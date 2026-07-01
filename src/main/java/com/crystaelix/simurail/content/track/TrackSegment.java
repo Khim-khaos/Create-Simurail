@@ -14,6 +14,7 @@ import com.simibubi.create.content.trains.graph.TrackNodeLocation;
 import com.simibubi.create.content.trains.track.BezierConnection;
 import com.simibubi.create.content.trains.track.TrackMaterial;
 
+import dev.ryanhcode.sable.util.SableNBTUtils;
 import net.createmod.catnip.data.Pair;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.registries.Registries;
@@ -27,19 +28,21 @@ public sealed abstract class TrackSegment permits StraightTrackSegment, CurvedTr
 	final ResourceKey<Level> dimension;
 	final Vector3dc start;
 	final Vector3dc end;
+	final Vector3dc normal;
 	final TrackMaterial material;
 
 	final Vector3dc delta;
 	final Basis3dc basis;
 
-	public TrackSegment(ResourceKey<Level> dimension, Vector3dc start, Vector3dc end, TrackMaterial material) {
+	public TrackSegment(ResourceKey<Level> dimension, Vector3dc start, Vector3dc end, Vector3dc normal, TrackMaterial material) {
 		this.dimension = dimension;
 		this.start = start;
 		this.end = end;
+		this.normal = normal;
 		this.material = material;
 
 		delta = new Vector3d(end).sub(start);
-		basis = new Basis3d().orthogonalized(delta, SimurailMath.DIR_YP);
+		basis = new Basis3d().orthogonalized(delta, normal);
 	}
 
 	public ResourceKey<Level> dimension() {
@@ -166,6 +169,7 @@ public sealed abstract class TrackSegment permits StraightTrackSegment, CurvedTr
 			tag.putString("type", "straight");
 			tag.put("start", straight.edgeStart().write(null));
 			tag.put("end", straight.edgeEnd().write(null));
+			tag.put("normal", SableNBTUtils.writeVector3d(normal));
 			tag.putString("material", material().id.toString());
 		}
 		case CurvedTrackSegment curve -> {
@@ -186,10 +190,11 @@ public sealed abstract class TrackSegment permits StraightTrackSegment, CurvedTr
 		case "straight" -> {
 			TrackNodeLocation trackStart = TrackNodeLocation.read(tag.getCompound("start"), null);
 			TrackNodeLocation trackEnd = TrackNodeLocation.read(tag.getCompound("end"), null);
+			Vector3dc trackNormal = SableNBTUtils.readVector3d(tag.getCompound("normal"));
 			TrackMaterial material = TrackMaterial.deserialize(tag.getString("material"));
 			trackStart.dimension = dimension;
 			trackEnd.dimension = dimension;
-			return new StraightTrackSegment(trackStart, trackEnd, material);
+			return new StraightTrackSegment(trackStart, trackEnd, trackNormal, material);
 		}
 		case "curved" -> {
 			BezierConnection curve = new BezierConnection(tag.getCompound("curve"), BlockPos.ZERO);

@@ -2,6 +2,8 @@ package com.crystaelix.simurail.content.track;
 
 import java.util.Objects;
 
+import org.joml.Vector3dc;
+
 import com.simibubi.create.content.trains.graph.TrackEdge;
 import com.simibubi.create.content.trains.graph.TrackGraph;
 import com.simibubi.create.content.trains.graph.TrackNode;
@@ -16,10 +18,11 @@ public final class StraightTrackSegment extends TrackSegment {
 	final TrackNodeLocation trackStart;
 	final TrackNodeLocation trackEnd;
 
-	public StraightTrackSegment(TrackNodeLocation trackStart, TrackNodeLocation trackEnd, TrackMaterial material) {
+	public StraightTrackSegment(TrackNodeLocation trackStart, TrackNodeLocation trackEnd, Vector3dc normal, TrackMaterial material) {
 		super(trackStart.dimension,
 				JOMLConversion.toJOML(trackStart.getLocation()),
 				JOMLConversion.toJOML(trackEnd.getLocation()),
+				normal,
 				material);
 		this.trackStart = trackStart;
 		this.trackEnd = trackEnd;
