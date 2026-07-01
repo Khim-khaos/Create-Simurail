@@ -6,6 +6,19 @@
 	"item.simurail.inverted_physics_bogey": "倒置物理转向架",
 	"item.simurail.steering_connector": "转向连接器",
 
+	"block.simurail.gangway_frame.d": "下",
+	"block.simurail.gangway_frame.u": "上",
+	"block.simurail.gangway_frame.l": "左",
+	"block.simurail.gangway_frame.r": "右",
+	"block.simurail.gangway_frame.dl": "左下",
+	"block.simurail.gangway_frame.rd": "右下",
+	"block.simurail.gangway_frame.lu": "左上",
+	"block.simurail.gangway_frame.ur": "右上",
+	"block.simurail.gangway_frame.ld": "长 左下",
+	"block.simurail.gangway_frame.dr": "长 右下",
+	"block.simurail.gangway_frame.ul": "长 左上",
+	"block.simurail.gangway_frame.ru": "长 右上",
+
 	"item.simurail.steering_connector.same_block": "方块位置相同",
 	"item.simurail.steering_connector.out_of_range": "超出范围",
 	"item.simurail.steering_connector.cannot_connect": "无法连接至此位置",
@@ -55,6 +68,9 @@
 	"gui.simurail.physics_bogey.axle_spacing": "有效轴距",
 	"gui.simurail.physics_bogey.track_type": "轨道类型",
 	"gui.simurail.physics_bogey.options": "更改转向架选项",
+
+	"gui.simurail.gangway_frame.shape": "形状",
+	"gui.simurail.gangway_frame.rest_length": "静止长度",
 
 	"subtitles.simurail.block.coupler.connect": "车钩：连接",
 	"subtitles.simurail.block.coupler.disconnect": "车钩：断开",

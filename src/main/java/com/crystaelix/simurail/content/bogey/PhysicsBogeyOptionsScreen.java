@@ -18,12 +18,9 @@ import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.core.BlockPos;
 import net.minecraft.network.chat.Component;
 
-public class PhysicsBogeyOptionsScreen extends PhysicsBogeyScreen {
+public class PhysicsBogeyOptionsScreen extends PhysicsBogeyBaseScreen {
 
 	public static final SimurailGuiTextures BACKGROUND = SimurailGuiTextures.PHYSICS_BOGEY_OPTIONS;
-
-	public static final Component TITLE = Component.translatable("gui.simurail.physics_bogey.title");
-	public static final Component INVERTED_TITLE = Component.translatable("gui.simurail.physics_bogey.title.inverted");
 
 	public static final Component PHYSICS_TITLE = Component.translatable("gui.simurail.physics_bogey.physics");
 	public static final Component ROTATION_TITLE = Component.translatable("gui.simurail.physics_bogey.rotation");
@@ -282,7 +279,7 @@ public class PhysicsBogeyOptionsScreen extends PhysicsBogeyScreen {
 			be.renderPivotOffset.step();
 			be.renderPivotRot.step();
 		}
-		VeilPacketManager.server().sendPacket(new PhysicsBogeySetOptionsPacket(pos, options));
+		VeilPacketManager.server().sendPacket(new PhysicsBogeyOptionsPacket(pos, options));
 		onClose();
 	}
 }

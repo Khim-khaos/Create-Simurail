@@ -2,7 +2,7 @@
 	"parent": "block/block",
 	"render_type": "solid",
 	"textures": {
-		"particle": "simurail:block/gangway_frame/bellows",
+		"particle": "simurail:block/gangway_frame/bellows_item",
 		"base": "simurail:block/gangway_frame/base_normal"
 	},
 	"elements": [

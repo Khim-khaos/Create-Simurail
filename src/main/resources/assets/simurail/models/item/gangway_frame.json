@@ -3,9 +3,9 @@
 	"render_type": "solid",
 	"textures": {
 		"base": "simurail:block/gangway_frame/base_normal",
-		"particle": "simurail:block/gangway_frame/bellows",
-		"bellows": "simurail:block/gangway_frame/bellows",
-		"side": "simurail:block/gangway_frame/bellows_side"
+		"particle": "simurail:block/gangway_frame/bellows_item",
+		"bellows": "simurail:block/gangway_frame/bellows_item",
+		"side": "simurail:block/gangway_frame/bellows_side_item"
 	},
 	"elements": [
 		{

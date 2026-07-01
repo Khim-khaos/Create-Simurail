@@ -6,6 +6,19 @@
 	"item.simurail.inverted_physics_bogey": "Inverted Physics Bogie",
 	"item.simurail.steering_connector": "Steering Connector",
 
+	"block.simurail.gangway_frame.d": "Down",
+	"block.simurail.gangway_frame.u": "Up",
+	"block.simurail.gangway_frame.l": "Left",
+	"block.simurail.gangway_frame.r": "Right",
+	"block.simurail.gangway_frame.dl": "Lower Left",
+	"block.simurail.gangway_frame.rd": "Lower Right",
+	"block.simurail.gangway_frame.lu": "Upper Left",
+	"block.simurail.gangway_frame.ur": "Upper Right",
+	"block.simurail.gangway_frame.ld": "Long Lower Left",
+	"block.simurail.gangway_frame.dr": "Long Lower Right",
+	"block.simurail.gangway_frame.ul": "Long Upper Left",
+	"block.simurail.gangway_frame.ru": "Long Upper Right",
+
 	"item.simurail.steering_connector.same_block": "Same block position",
 	"item.simurail.steering_connector.out_of_range": "Out of range",
 	"item.simurail.steering_connector.cannot_connect": "Cannot connect to this position",
@@ -55,6 +68,9 @@
 	"gui.simurail.physics_bogey.axle_spacing": "Effective Axle Spacing",
 	"gui.simurail.physics_bogey.track_type": "Track Types",
 	"gui.simurail.physics_bogey.options": "Change Bogie Options",
+
+	"gui.simurail.gangway_frame.shape": "Shape",
+	"gui.simurail.gangway_frame.rest_length": "Rest Length",
 
 	"subtitles.simurail.block.coupler.connect": "Coupler connects",
 	"subtitles.simurail.block.coupler.disconnect": "Coupler disconnects",

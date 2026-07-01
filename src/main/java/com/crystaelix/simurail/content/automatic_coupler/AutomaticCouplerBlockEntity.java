@@ -11,13 +11,13 @@ import org.joml.Vector3dc;
 
 import com.crystaelix.simurail.api.coupler.CouplerType;
 import com.crystaelix.simurail.api.coupler.CouplerTypeRegistry;
-import com.crystaelix.simurail.api.math.Quad3d;
 import com.crystaelix.simurail.api.math.SimurailMath;
 import com.crystaelix.simurail.api.physics.SimurailJoints;
 import com.crystaelix.simurail.api.util.SchematicContextUtil;
 import com.crystaelix.simurail.api.util.SubLevelUtil;
 import com.crystaelix.simurail.config.SimurailConfig;
 import com.crystaelix.simurail.config.SimurailPhysicsConfig;
+import com.crystaelix.simurail.content.SimurailBlocks;
 import com.crystaelix.simurail.content.SimurailCouplers;
 import com.crystaelix.simurail.content.SimurailSoundEvents;
 import com.crystaelix.simurail.content.bogey.PhysicsBogeyBlockEntity;
@@ -35,6 +35,7 @@ import dev.ryanhcode.sable.api.physics.constraint.GenericConstraintHandle;
 import dev.ryanhcode.sable.api.physics.handle.RigidBodyHandle;
 import dev.ryanhcode.sable.api.sublevel.SubLevelContainer;
 import dev.ryanhcode.sable.companion.math.JOMLConversion;
+import dev.ryanhcode.sable.companion.math.Pose3d;
 import dev.ryanhcode.sable.companion.math.Pose3dc;
 import dev.ryanhcode.sable.sublevel.ServerSubLevel;
 import dev.ryanhcode.sable.sublevel.SubLevel;
@@ -50,9 +51,14 @@ import net.minecraft.core.HolderLookup.Provider;
 import net.minecraft.core.Vec3i;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.nbt.NbtUtils;
+import net.minecraft.network.chat.Component;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.sounds.SoundSource;
 import net.minecraft.util.Mth;
+import net.minecraft.world.MenuProvider;
+import net.minecraft.world.entity.player.Inventory;
+import net.minecraft.world.entity.player.Player;
+import net.minecraft.world.item.DyeColor;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.entity.BlockEntityType;
 import net.minecraft.world.level.block.state.BlockState;
@@ -62,7 +68,7 @@ import net.minecraft.world.phys.Vec3;
 import net.minecraft.world.phys.shapes.Shapes;
 import net.minecraft.world.phys.shapes.VoxelShape;
 
-public class AutomaticCouplerBlockEntity extends SmartBlockEntity implements BlockEntitySubLevelActor, SteeringConnectable, GangwayFrame {
+public class AutomaticCouplerBlockEntity extends SmartBlockEntity implements MenuProvider, BlockEntitySubLevelActor, SteeringConnectable, GangwayFrame {
 
 	public static final double SHORT_LENGTH = 0.5;
 	public static final double LONG_LENGTH = 1;
@@ -71,6 +77,7 @@ public class AutomaticCouplerBlockEntity extends SmartBlockEntity implements Blo
 
 	protected boolean isShort = false;
 	protected CouplerType type = SimurailCouplers.KNUCKLE;
+	protected int color = DyeColor.GRAY.getFireworkColor();
 
 	protected BlockPos partnerPos;
 	protected UUID partnerSubLevelID;
@@ -84,9 +91,10 @@ public class AutomaticCouplerBlockEntity extends SmartBlockEntity implements Blo
 	protected BlockPos gangwayPartnerPos;
 	protected UUID gangwayPartnerSubLevelID;
 
-	protected Quad3d lastGangwayPartnerQuadOffset = new Quad3d();
-	protected Vector3d lastGangwayPartnerCenterOffset = new Vector3d();
-	protected Vector3d lastGangwayPartnerDir = new Vector3d();
+	public float gangwayRestLength = 0;
+	public int gangwayColor = DyeColor.GRAY.getFireworkColor();
+
+	protected Pose3d gangwayEndPose = new Pose3d();
 	protected boolean hasGangwayPartner = false;
 	public int gangwayTimer;
 
@@ -99,6 +107,11 @@ public class AutomaticCouplerBlockEntity extends SmartBlockEntity implements Blo
 
 	@Override
 	public void addBehaviours(List<BlockEntityBehaviour> behaviours) {
+	}
+
+	@Override
+	public Component getDisplayName() {
+		return SimurailBlocks.AUTOMATIC_COUPLER.get().getName();
 	}
 
 	public void cycleLength() {
@@ -143,17 +156,6 @@ public class AutomaticCouplerBlockEntity extends SmartBlockEntity implements Blo
 	public Vector3d getGangwayCenter(Vector3d dest) {
 		BlockPos pos = getBlockPos();
 		return getGangwayShape().center(getFacing(), dest).add(pos.getX(), pos.getY(), pos.getZ());
-	}
-
-	@Override
-	public Vector3dc getDirection() {
-		return switch(getFacing()) {
-		case EAST -> SimurailMath.DIR_XP;
-		case WEST -> SimurailMath.DIR_XN;
-		case SOUTH -> SimurailMath.DIR_ZP;
-		case NORTH -> SimurailMath.DIR_ZN;
-		case null, default -> throw new IllegalArgumentException("Unexpected value: " + getFacing());
-		};
 	}
 
 	@Override
@@ -235,6 +237,14 @@ public class AutomaticCouplerBlockEntity extends SmartBlockEntity implements Blo
 			setChanged();
 			sendData();
 		}
+	}
+
+	public BlockPos getPartner() {
+		return partnerPos;
+	}
+
+	public boolean isPrimary() {
+		return partnerPos != null && joint != null;
 	}
 
 	@Override
@@ -342,6 +352,22 @@ public class AutomaticCouplerBlockEntity extends SmartBlockEntity implements Blo
 		return null;
 	}
 
+	public void setColor(int color) {
+		this.color = color;
+		if(!level.isClientSide()) {
+			setChanged();
+			sendData();
+		}
+	}
+
+	public void setGangwayColor(int color) {
+		gangwayColor = color;
+		if(!level.isClientSide()) {
+			setChanged();
+			sendData();
+		}
+	}
+
 	public void afterMove() {
 		if(partnerPos != null) {
 			setPartner(partnerPos);
@@ -375,51 +401,49 @@ public class AutomaticCouplerBlockEntity extends SmartBlockEntity implements Blo
 		init();
 		super.tick();
 		GangwayFrame gangwayPartner = getGangwayPartner();
-		if(gangwayPartner != null) {
-			BlockPos selfPos = getBlockPos();
-			BlockPos partnerPos = gangwayPartner.getBlockPos();
+		GangwayFrameShape gangwayShape = getGangwayShape();
+		Direction facing = getFacing();
+		int shapeIndex = 0;
 
-			SubLevel selfSubLevel = Sable.HELPER.getContaining(this);
-			SubLevel partnerSubLevel = Sable.HELPER.getContaining(level, partnerPos);
-			Pose3dc selfPose = selfSubLevel == null ? SimurailMath.POSE_I : selfSubLevel.logicalPose();
-			Pose3dc partnerPose = partnerSubLevel == null ? SimurailMath.POSE_I : partnerSubLevel.logicalPose();
-
-			gangwayPartner.getGangwayShape().quad(gangwayPartner.getFacing(), lastGangwayPartnerQuadOffset);
-			lastGangwayPartnerQuadOffset.add(partnerPos.getX(), partnerPos.getY(), partnerPos.getZ());
-			gangwayPartner.getGangwayCenter(lastGangwayPartnerCenterOffset);
-			lastGangwayPartnerDir.set(gangwayPartner.getDirection());
-
-			lastGangwayPartnerQuadOffset.transformPosition(partnerPose);
-			partnerPose.transformPosition(lastGangwayPartnerCenterOffset);
-			partnerPose.transformNormal(lastGangwayPartnerDir);
-
-			lastGangwayPartnerQuadOffset.transformPositionInverse(selfPose);
-			lastGangwayPartnerQuadOffset.sub(selfPos.getX(), selfPos.getY(), selfPos.getZ());
-			selfPose.transformPositionInverse(lastGangwayPartnerCenterOffset);
-			lastGangwayPartnerCenterOffset.sub(selfPos.getX(), selfPos.getY(), selfPos.getZ());
-			selfPose.transformNormalInverse(lastGangwayPartnerDir);
-
-			getGangwayShape().center(getFacing(), gangwayCenterOffset);
-
-			double x = lastGangwayPartnerCenterOffset.x() - gangwayCenterOffset.x();
-			double y = lastGangwayPartnerCenterOffset.y() - gangwayCenterOffset.y();
-			double z = lastGangwayPartnerCenterOffset.z() - gangwayCenterOffset.z();
-			double length = getDirection().dot(x, y, z) * 0.625;
-
-			int index = Math.clamp((int)Math.round(length * 16) + 3, 0, 29);
-			collisionShape = switch(getGangwayShape()) {
-			case D -> AutomaticCouplerBlock.D_SHAPES[index].get(getFacing());
-			case U -> AutomaticCouplerBlock.U_SHAPES[index].get(getFacing());
-			case null, default -> getBlockState().getShape(level, getBlockPos());
-			};
-		}
-		else {
-			collisionShape = getBlockState().getShape(level, getBlockPos());
-		}
 		if(gangwayPartner != null != hasGangwayPartner) {
 			hasGangwayPartner = gangwayPartner != null;
 			gangwayTimer = 10 - gangwayTimer;
 		}
+
+		BlockPos selfPos = getBlockPos();
+		SubLevel selfSubLevel = Sable.HELPER.getContaining(this);
+		Pose3dc selfPose = selfSubLevel == null ? SimurailMath.POSE_I : selfSubLevel.logicalPose();
+		if(gangwayPartner != null) {
+			BlockPos partnerPos = gangwayPartner.getBlockPos();
+			SubLevel partnerSubLevel = Sable.HELPER.getContaining(level, partnerPos);
+			Pose3dc partnerPose = partnerSubLevel == null ? SimurailMath.POSE_I : partnerSubLevel.logicalPose();
+
+			gangwayPartner.getGangwayCenter(gangwayEndPose.position());
+			partnerPose.transformPosition(gangwayEndPose.position());
+			selfPose.transformPositionInverse(gangwayEndPose.position());
+			gangwayEndPose.position().sub(selfPos.getX(), selfPos.getY(), selfPos.getZ());
+
+			selfPose.orientation().conjugate(gangwayEndPose.orientation());
+			gangwayEndPose.orientation().mul(partnerPose.orientation());
+			gangwayEndPose.orientation().mul(gangwayPartner.getOrientation()).rotateY(Math.PI);
+
+			gangwayShape.center(facing, gangwayCenterOffset);
+
+			double x = gangwayEndPose.position().x - gangwayCenterOffset.x;
+			double y = gangwayEndPose.position().y - gangwayCenterOffset.y;
+			double z = gangwayEndPose.position().z - gangwayCenterOffset.z;
+			double length = getDirection().dot(x, y, z) * 0.5625;
+
+			shapeIndex = Math.clamp((int)Math.round(length * 16) - 1, 0, 29);
+		}
+		else {
+			shapeIndex = Math.clamp((int)Math.round(gangwayRestLength * 16) - 1, 0, 29);
+		}
+		collisionShape = switch(gangwayShape) {
+		case D -> AutomaticCouplerBlock.D_SHAPES[shapeIndex].get(getFacing());
+		case U -> AutomaticCouplerBlock.U_SHAPES[shapeIndex].get(getFacing());
+		case null, default -> getBlockState().getShape(level, getBlockPos());
+		};
 		if(gangwayTimer > 0) {
 			gangwayTimer--;
 		}
@@ -672,6 +696,11 @@ public class AutomaticCouplerBlockEntity extends SmartBlockEntity implements Blo
 	}
 
 	@Override
+	public AutomaticCouplerMenu createMenu(int windowId, Inventory inv, Player player) {
+		return new AutomaticCouplerMenu(windowId, this);
+	}
+
+	@Override
 	public void setBlockState(BlockState blockState) {
 		GangwayFrameShape oldShape = getGangwayShape();
 		super.setBlockState(blockState);
@@ -694,6 +723,10 @@ public class AutomaticCouplerBlockEntity extends SmartBlockEntity implements Blo
 		super.write(tag, registries, clientPacket);
 		tag.putBoolean("is_short", isShort);
 		tag.putString("type", type.id().toString());
+		tag.putInt("color", color);
+
+		tag.putDouble("gangway_rest_length", gangwayRestLength);
+		tag.putInt("gangway_color", gangwayColor);
 
 		if(connectedPos != null) {
 			tag.put("connected", NbtUtils.writeBlockPos(connectedPos));
@@ -724,18 +757,30 @@ public class AutomaticCouplerBlockEntity extends SmartBlockEntity implements Blo
 		super.writeSafe(tag, registries);
 		tag.putBoolean("is_short", isShort);
 		tag.putString("type", type.id().toString());
+		tag.putInt("color", color);
+
+		tag.putDouble("gangway_rest_length", gangwayRestLength);
+		tag.putInt("gangway_color", gangwayColor);
 	}
 
 	@Override
 	protected void read(CompoundTag tag, HolderLookup.Provider registries, boolean clientPacket) {
 		super.read(tag, registries, clientPacket);
-		isShort = tag.getBoolean("is_short");
 
+		isShort = tag.getBoolean("is_short");
 		if(tag.contains("type")) {
 			type = CouplerTypeRegistry.get(ResourceLocation.tryParse(tag.getString("type")));
 			if(type == null) {
 				type = SimurailCouplers.KNUCKLE;
 			}
+		}
+		if(tag.contains("color")) {
+			color = tag.getInt("color");
+		}
+
+		gangwayRestLength = tag.getFloat("gangway_rest_length");
+		if(tag.contains("gangway_color")) {
+			gangwayColor = tag.getInt("gangway_color");
 		}
 
 		connectedPos = NbtUtils.readBlockPos(tag, "connected").orElse(null);

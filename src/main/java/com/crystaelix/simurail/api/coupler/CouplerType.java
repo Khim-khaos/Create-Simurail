@@ -1,10 +1,14 @@
 package com.crystaelix.simurail.api.coupler;
 
+import io.netty.buffer.ByteBuf;
 import net.minecraft.Util;
 import net.minecraft.network.chat.Component;
+import net.minecraft.network.codec.StreamCodec;
 import net.minecraft.resources.ResourceLocation;
 
 public class CouplerType {
+
+	public static final StreamCodec<ByteBuf, CouplerType> STREAM_CODEC = ResourceLocation.STREAM_CODEC.map(CouplerTypeRegistry::get, CouplerType::id);
 
 	private final ResourceLocation id;
 	private final Component displayName;

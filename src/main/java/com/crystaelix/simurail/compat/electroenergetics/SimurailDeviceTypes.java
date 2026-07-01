@@ -3,6 +3,7 @@ package com.crystaelix.simurail.compat.electroenergetics;
 import java.util.function.Supplier;
 
 import com.crystaelix.simurail.Simurail;
+import com.crystaelix.simurail.compat.electroenergetics.device.AutomaticCouplerDevice;
 import com.crystaelix.simurail.compat.electroenergetics.device.PhysicsBogeyDevice;
 import com.george_vi.electroenergetics.CEERegistries;
 import com.george_vi.electroenergetics.devices.device.SimulatedDevice;
@@ -18,6 +19,7 @@ public class SimurailDeviceTypes {
 	public static final DeferredRegister<SimulatedDeviceType<?>> REGISTRAR = DeferredRegister.create(CEERegistries.SIMULATED_DEVICE_TYPE, Simurail.MOD_ID);
 
 	public static final Supplier<SimulatedDeviceType<PhysicsBogeyDevice>> PHYSICS_BOGEY = register("physics_bogey", PhysicsBogeyDevice::new);
+	public static final Supplier<SimulatedDeviceType<AutomaticCouplerDevice>> AUTOMATIC_COUPLER = register("automatic_coupler", AutomaticCouplerDevice::new);
 
 	public static void register(IEventBus modEventBus) {
 		REGISTRAR.register(modEventBus);

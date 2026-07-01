@@ -8,8 +8,8 @@ import org.spongepowered.asm.mixin.Mixin;
 
 import com.crystaelix.simurail.compat.electroenergetics.SimurailDeviceTypes;
 import com.crystaelix.simurail.compat.electroenergetics.SimurailNodeConfigurations;
-import com.crystaelix.simurail.compat.electroenergetics.device.PhysicsBogeyDevice;
-import com.crystaelix.simurail.content.bogey.PhysicsBogeyBlock;
+import com.crystaelix.simurail.compat.electroenergetics.device.AutomaticCouplerDevice;
+import com.crystaelix.simurail.content.automatic_coupler.AutomaticCouplerBlock;
 import com.george_vi.electroenergetics.CEEItems;
 import com.george_vi.electroenergetics.config.CEEConfigs;
 import com.george_vi.electroenergetics.devices.device.SimulatedDeviceType;
@@ -20,7 +20,6 @@ import com.george_vi.electroenergetics.simulation.infrastructure.InfrastructureS
 import com.george_vi.electroenergetics.simulation.infrastructure.WireData;
 import com.llamalad7.mixinextras.injector.wrapmethod.WrapMethod;
 import com.llamalad7.mixinextras.injector.wrapoperation.Operation;
-import com.simibubi.create.content.kinetics.base.HorizontalKineticBlock;
 
 import net.minecraft.core.BlockPos;
 import net.minecraft.server.level.ServerLevel;
@@ -31,33 +30,31 @@ import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.context.UseOnContext;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.Block;
+import net.minecraft.world.level.block.HorizontalDirectionalBlock;
 import net.minecraft.world.level.block.state.BlockState;
-import net.minecraft.world.level.block.state.properties.BlockStateProperties;
 import net.minecraft.world.phys.Vec3;
 import net.minecraft.world.ticks.LevelTickAccess;
 
-@Mixin(PhysicsBogeyBlock.class)
-public abstract class PhysicsBogeyBlockMixin extends HorizontalKineticBlock implements ElectricalDeviceBlock<PhysicsBogeyDevice> {
+@Mixin(AutomaticCouplerBlock.class)
+public abstract class AutomaticCouplerBlockMixin extends HorizontalDirectionalBlock implements ElectricalDeviceBlock<AutomaticCouplerDevice> {
 
-	public PhysicsBogeyBlockMixin(Properties properties) {
+	protected AutomaticCouplerBlockMixin(Properties properties) {
 		super(properties);
 	}
 
 	@Override
-	public SimulatedDeviceType<PhysicsBogeyDevice> getDevice() {
-		return SimurailDeviceTypes.PHYSICS_BOGEY.get();
+	public SimulatedDeviceType<AutomaticCouplerDevice> getDevice() {
+		return SimurailDeviceTypes.AUTOMATIC_COUPLER.get();
 	}
 
 	@Override
 	public Map<Integer, Vec3> getNodePositions(Level level, BlockPos pos, BlockState state) {
-		return (state.getValue(BlockStateProperties.INVERTED) ? SimurailNodeConfigurations.INVERTED_PHYSICS_BOGEY : SimurailNodeConfigurations.PHYSICS_BOGEY).
-				getNodes(state.getValue(HORIZONTAL_FACING));
+		return SimurailNodeConfigurations.AUTOMATIC_COUPLER.getNodes(state.getValue(FACING));
 	}
 
 	@Override
 	public Vec3 getNodePosition(Level level, BlockPos pos, BlockState state, int id) {
-		return (state.getValue(BlockStateProperties.INVERTED) ? SimurailNodeConfigurations.INVERTED_PHYSICS_BOGEY : SimurailNodeConfigurations.PHYSICS_BOGEY).
-				getNodePos(state.getValue(HORIZONTAL_FACING), id);
+		return SimurailNodeConfigurations.AUTOMATIC_COUPLER.getNodePos(state.getValue(FACING), id);
 	}
 
 	@WrapMethod(method = "onPlace")
@@ -92,8 +89,11 @@ public abstract class PhysicsBogeyBlockMixin extends HorizontalKineticBlock impl
 
 	@WrapMethod(method = "onSneakWrenched")
 	private InteractionResult simurail$electroenergetics$onSneakWrenched(BlockState state, UseOnContext context, Operation<InteractionResult> original) {
+		BlockPos pos = context.getClickedPos();
+		double hitY = context.getClickLocation().y - pos.getY();
+		boolean removedCoupler = hitY > 0.3 && hitY < 0.7;
 		Player player = context.getPlayer();
-		if(context.getLevel() instanceof ServerLevel sl && player != null) {
+		if(removedCoupler && context.getLevel() instanceof ServerLevel sl && player != null) {
 			InfrastructureSavedData sd = InfrastructureSavedData.load(sl);
 			for(InWorldNodeData nodeData : sd.getNodesAt(context.getClickedPos())) {
 				for(InWorldNodeConnection connection : sd.getConnections(nodeData)) {

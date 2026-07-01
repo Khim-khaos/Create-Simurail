@@ -14,10 +14,13 @@ import dev.ryanhcode.sable.api.physics.collider.SableCollisionContext;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.server.level.ServerLevel;
+import net.minecraft.sounds.SoundEvents;
+import net.minecraft.sounds.SoundSource;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.InteractionResult;
 import net.minecraft.world.ItemInteractionResult;
 import net.minecraft.world.entity.player.Player;
+import net.minecraft.world.item.DyeItem;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.context.BlockPlaceContext;
 import net.minecraft.world.item.context.UseOnContext;
@@ -160,7 +163,7 @@ public class GangwayFrameBlock extends HorizontalDirectionalBlock implements IBE
 
 	@Override
 	protected boolean canBeReplaced(BlockState state, BlockPlaceContext useContext) {
-		return useContext.getItemInHand().is(SimurailBlocks.AUTOMATIC_COUPLER.asItem());
+		return GangwayFrameShape.COUPLER.contains(state.getValue(SHAPE)) && useContext.getItemInHand().is(SimurailBlocks.AUTOMATIC_COUPLER.asItem());
 	}
 
 	@Override
@@ -178,15 +181,23 @@ public class GangwayFrameBlock extends HorizontalDirectionalBlock implements IBE
 			}
 			return ItemInteractionResult.SUCCESS;
 		}
+		if(stack.getItem() instanceof DyeItem dye) {
+			withBlockEntityDo(level, pos, be -> be.setColor(dye.getDyeColor().getFireworkColor()));
+			level.playSound(null, pos, SoundEvents.DYE_USE, SoundSource.BLOCKS);
+			return ItemInteractionResult.SUCCESS;
+		}
 		return ItemInteractionResult.PASS_TO_DEFAULT_BLOCK_INTERACTION;
 	}
 
 	@Override
 	public InteractionResult onWrenched(BlockState state, UseOnContext context) {
 		Level level = context.getLevel();
+		if(level.isClientSide()) {
+			return InteractionResult.SUCCESS;
+		}
 		BlockPos pos = context.getClickedPos();
-		level.setBlock(pos, state.setValue(SHAPE, state.getValue(SHAPE).nextWrenchShape()), Block.UPDATE_ALL);
-		IWrenchable.playRotateSound(level, pos);
+		Player player = context.getPlayer();
+		withBlockEntityDo(level, pos, be -> player.openMenu(be, buf -> GangwayFrameMenu.prepare(buf, be)));
 		return InteractionResult.SUCCESS;
 	}
 

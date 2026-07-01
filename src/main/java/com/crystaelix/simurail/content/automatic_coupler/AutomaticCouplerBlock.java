@@ -19,10 +19,15 @@ import net.createmod.catnip.math.VoxelShaper;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.server.level.ServerLevel;
+import net.minecraft.sounds.SoundEvents;
+import net.minecraft.sounds.SoundSource;
+import net.minecraft.util.RandomSource;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.InteractionResult;
 import net.minecraft.world.ItemInteractionResult;
 import net.minecraft.world.entity.player.Player;
+import net.minecraft.world.item.DyeColor;
+import net.minecraft.world.item.DyeItem;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.context.BlockPlaceContext;
 import net.minecraft.world.item.context.UseOnContext;
@@ -177,8 +182,13 @@ public class AutomaticCouplerBlock extends HorizontalDirectionalBlock implements
 				IWrenchable.playRotateSound(level, pos);
 				return ItemInteractionResult.SUCCESS;
 			}
+			if(stack.getItem() instanceof DyeItem dye) {
+				withBlockEntityDo(level, pos, be -> be.setColor(dye.getDyeColor().getFireworkColor()));
+				level.playSound(null, pos, SoundEvents.DYE_USE, SoundSource.BLOCKS);
+				return ItemInteractionResult.SUCCESS;
+			}
 		}
-		else if(!state.getValue(POWERED)){
+		else {
 			if(stack.isEmpty()) {
 				if(!level.isClientSide()) {
 					withBlockEntityDo(level, pos, be -> {
@@ -190,6 +200,11 @@ public class AutomaticCouplerBlock extends HorizontalDirectionalBlock implements
 						}
 					});
 				}
+				return ItemInteractionResult.SUCCESS;
+			}
+			if(stack.getItem() instanceof DyeItem dye) {
+				withBlockEntityDo(level, pos, be -> be.setGangwayColor(dye.getDyeColor().getFireworkColor()));
+				level.playSound(null, pos, SoundEvents.DYE_USE, SoundSource.BLOCKS);
 				return ItemInteractionResult.SUCCESS;
 			}
 		}
@@ -212,16 +227,17 @@ public class AutomaticCouplerBlock extends HorizontalDirectionalBlock implements
 		double hitY = context.getClickLocation().y - pos.getY();
 		if(hitY > 0.3 && hitY < 0.7) {
 			withBlockEntityDo(level, pos, AutomaticCouplerBlockEntity::cycleType);
+			IWrenchable.playRotateSound(level, pos);
+			return InteractionResult.SUCCESS;
 		}
 		else {
-			switch(state.getValue(GANGWAY_SHAPE)) {
-			case D -> level.setBlock(pos, state.setValue(GANGWAY_SHAPE, GangwayFrameShape.U), UPDATE_ALL);
-			case U -> level.setBlock(pos, state.setValue(GANGWAY_SHAPE, GangwayFrameShape.D), UPDATE_ALL);
-			case null, default -> {}
+			if(level.isClientSide()) {
+				return InteractionResult.SUCCESS;
 			}
+			Player player = context.getPlayer();
+			withBlockEntityDo(level, pos, be -> player.openMenu(be, buf -> AutomaticCouplerMenu.prepare(buf, be, true)));
+			return InteractionResult.SUCCESS;
 		}
-		IWrenchable.playRotateSound(level, pos);
-		return InteractionResult.SUCCESS;
 	}
 
 	@Override
@@ -250,11 +266,15 @@ public class AutomaticCouplerBlock extends HorizontalDirectionalBlock implements
 					setValue(WATERLOGGED, state.getValue(WATERLOGGED));
 			level.setBlock(pos, newState, UPDATE_ALL);
 			if(level.getBlockEntity(pos) instanceof GangwayFrameBlockEntity newBE) {
+				newBE.restLength = be.gangwayRestLength;
+				newBE.color = be.gangwayColor;
 				newBE.setGangwayPartnerReverse(be.gangwayPartnerPos);
 			}
 		}
 		else {
 			be.removeGangwayPartner();
+			be.gangwayRestLength = 0;
+			be.gangwayColor = DyeColor.GRAY.getFireworkColor();
 			BlockState newState = state.setValue(GANGWAY_SHAPE, GangwayFrameShape.NONE);
 			level.setBlock(pos, newState, UPDATE_ALL);
 		}
@@ -275,5 +295,22 @@ public class AutomaticCouplerBlock extends HorizontalDirectionalBlock implements
 	@Override
 	public void afterMove(ServerLevel originLevel, ServerLevel resultingLevel, BlockState newState, BlockPos oldPos, BlockPos newPos) {
 		withBlockEntityDo(resultingLevel, newPos, AutomaticCouplerBlockEntity::afterMove);
+	}
+
+	// Mixin overridable
+
+	@Override
+	public void onPlace(BlockState state, Level level, BlockPos pos, BlockState oldState, boolean isMoving) {
+		super.onPlace(state, level, pos, oldState, isMoving);
+	}
+
+	@Override
+	protected void tick(BlockState state, ServerLevel level, BlockPos pos, RandomSource random) {
+		super.tick(state, level, pos, random);
+	}
+
+	@Override
+	public BlockState playerWillDestroy(Level level, BlockPos pos, BlockState state, Player player) {
+		return super.playerWillDestroy(level, pos, state, player);
 	}
 }

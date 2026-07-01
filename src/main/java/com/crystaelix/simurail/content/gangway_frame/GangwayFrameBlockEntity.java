@@ -6,16 +6,16 @@ import java.util.Set;
 import java.util.UUID;
 
 import org.joml.Vector3d;
-import org.joml.Vector3dc;
 
-import com.crystaelix.simurail.api.math.Quad3d;
 import com.crystaelix.simurail.api.math.SimurailMath;
 import com.crystaelix.simurail.api.util.SchematicContextUtil;
+import com.crystaelix.simurail.content.SimurailBlocks;
 import com.crystaelix.simurail.content.SimurailSoundEvents;
 import com.simibubi.create.foundation.blockEntity.SmartBlockEntity;
 import com.simibubi.create.foundation.blockEntity.behaviour.BlockEntityBehaviour;
 
 import dev.ryanhcode.sable.Sable;
+import dev.ryanhcode.sable.companion.math.Pose3d;
 import dev.ryanhcode.sable.companion.math.Pose3dc;
 import dev.ryanhcode.sable.sublevel.SubLevel;
 import net.createmod.catnip.data.Couple;
@@ -27,7 +27,12 @@ import net.minecraft.core.HolderLookup;
 import net.minecraft.core.HolderLookup.Provider;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.nbt.NbtUtils;
+import net.minecraft.network.chat.Component;
 import net.minecraft.sounds.SoundSource;
+import net.minecraft.world.MenuProvider;
+import net.minecraft.world.entity.player.Inventory;
+import net.minecraft.world.entity.player.Player;
+import net.minecraft.world.item.DyeColor;
 import net.minecraft.world.level.block.entity.BlockEntityType;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.block.state.properties.BlockStateProperties;
@@ -35,14 +40,15 @@ import net.minecraft.world.phys.AABB;
 import net.minecraft.world.phys.shapes.Shapes;
 import net.minecraft.world.phys.shapes.VoxelShape;
 
-public class GangwayFrameBlockEntity extends SmartBlockEntity implements GangwayFrame {
+public class GangwayFrameBlockEntity extends SmartBlockEntity implements MenuProvider, GangwayFrame {
 
 	protected BlockPos gangwayPartnerPos;
 	protected UUID gangwayPartnerSubLevelID;
 
-	protected Quad3d lastPartnerQuadOffset = new Quad3d();
-	protected Vector3d lastPartnerCenterOffset = new Vector3d();
-	protected Vector3d lastPartnerDir = new Vector3d();
+	public float restLength = 0;
+	public int color = DyeColor.GRAY.getFireworkColor();
+
+	protected Pose3d endPose = new Pose3d();
 	protected boolean hasPartner = false;
 	public int timer = 0;
 
@@ -54,6 +60,11 @@ public class GangwayFrameBlockEntity extends SmartBlockEntity implements Gangway
 
 	@Override
 	public void addBehaviours(List<BlockEntityBehaviour> behaviours) {
+	}
+
+	@Override
+	public Component getDisplayName() {
+		return SimurailBlocks.GANGWAY_FRAME.get().getName();
 	}
 
 	@Override
@@ -70,17 +81,6 @@ public class GangwayFrameBlockEntity extends SmartBlockEntity implements Gangway
 	public Vector3d getGangwayCenter(Vector3d dest) {
 		BlockPos pos = getBlockPos();
 		return getGangwayShape().center(getFacing(), dest).add(pos.getX(), pos.getY(), pos.getZ());
-	}
-
-	@Override
-	public Vector3dc getDirection() {
-		return switch(getFacing()) {
-		case EAST -> SimurailMath.DIR_XP;
-		case WEST -> SimurailMath.DIR_XN;
-		case SOUTH -> SimurailMath.DIR_ZP;
-		case NORTH -> SimurailMath.DIR_ZN;
-		case null, default -> throw new IllegalArgumentException("Unexpected value: " + getFacing());
-		};
 	}
 
 	@Override
@@ -163,6 +163,14 @@ public class GangwayFrameBlockEntity extends SmartBlockEntity implements Gangway
 		return null;
 	}
 
+	public void setColor(int color) {
+		this.color = color;
+		if(!level.isClientSide()) {
+			setChanged();
+			sendData();
+		}
+	}
+
 	public void afterMove() {
 		if(gangwayPartnerPos != null) {
 			setGangwayPartner(gangwayPartnerPos);
@@ -180,45 +188,42 @@ public class GangwayFrameBlockEntity extends SmartBlockEntity implements Gangway
 	public void tick() {
 		super.tick();
 		GangwayFrame partner = getGangwayPartner();
-		if(partner != null) {
-			BlockPos selfPos = getBlockPos();
-			BlockPos partnerPos = partner.getBlockPos();
+		GangwayFrameShape shape = getGangwayShape();
+		Direction facing = getFacing();
 
-			SubLevel selfSubLevel = Sable.HELPER.getContaining(this);
-			SubLevel partnerSubLevel = Sable.HELPER.getContaining(level, partnerPos);
-			Pose3dc selfPose = selfSubLevel == null ? SimurailMath.POSE_I : selfSubLevel.logicalPose();
-			Pose3dc partnerPose = partnerSubLevel == null ? SimurailMath.POSE_I : partnerSubLevel.logicalPose();
-
-			partner.getGangwayShape().quad(partner.getFacing(), lastPartnerQuadOffset);
-			lastPartnerQuadOffset.add(partnerPos.getX(), partnerPos.getY(), partnerPos.getZ());
-			partner.getGangwayCenter(lastPartnerCenterOffset);
-			lastPartnerDir.set(partner.getDirection());
-
-			lastPartnerQuadOffset.transformPosition(partnerPose);
-			partnerPose.transformPosition(lastPartnerCenterOffset);
-			partnerPose.transformNormal(lastPartnerDir);
-
-			lastPartnerQuadOffset.transformPositionInverse(selfPose);
-			lastPartnerQuadOffset.sub(selfPos.getX(), selfPos.getY(), selfPos.getZ());
-			selfPose.transformPositionInverse(lastPartnerCenterOffset);
-			lastPartnerCenterOffset.sub(selfPos.getX(), selfPos.getY(), selfPos.getZ());
-			selfPose.transformNormalInverse(lastPartnerDir);
-
-			getGangwayShape().center(getFacing(), centerOffset);
-
-			double x = lastPartnerCenterOffset.x() - centerOffset.x();
-			double y = lastPartnerCenterOffset.y() - centerOffset.y();
-			double z = lastPartnerCenterOffset.z() - centerOffset.z();
-			double length = getDirection().dot(x, y, z) * 0.625;
-
-			collisionShape = getGangwayShape().getShapeForLength(getFacing(), length * 16);
-		}
-		else {
-			collisionShape = getBlockState().getShape(level, getBlockPos());
-		}
 		if(partner != null != hasPartner) {
 			hasPartner = partner != null;
 			timer = 10 - timer;
+		}
+
+		BlockPos selfPos = getBlockPos();
+		SubLevel selfSubLevel = Sable.HELPER.getContaining(this);
+		Pose3dc selfPose = selfSubLevel == null ? SimurailMath.POSE_I : selfSubLevel.logicalPose();
+		if(partner != null) {
+			BlockPos partnerPos = partner.getBlockPos();
+			SubLevel partnerSubLevel = Sable.HELPER.getContaining(level, partnerPos);
+			Pose3dc partnerPose = partnerSubLevel == null ? SimurailMath.POSE_I : partnerSubLevel.logicalPose();
+
+			partner.getGangwayCenter(endPose.position());
+			partnerPose.transformPosition(endPose.position());
+			selfPose.transformPositionInverse(endPose.position());
+			endPose.position().sub(selfPos.getX(), selfPos.getY(), selfPos.getZ());
+
+			selfPose.orientation().conjugate(endPose.orientation());
+			endPose.orientation().mul(partnerPose.orientation());
+			endPose.orientation().mul(partner.getOrientation()).rotateY(Math.PI);
+
+			shape.center(facing, centerOffset);
+
+			double x = endPose.position().x - centerOffset.x;
+			double y = endPose.position().y - centerOffset.y;
+			double z = endPose.position().z - centerOffset.z;
+			double length = getDirection().dot(x, y, z) * 0.5625;
+
+			collisionShape = shape.getShapeForLength(facing, length * 16);
+		}
+		else {
+			collisionShape = shape.getShapeForLength(facing, restLength * 16);
 		}
 		if(timer > 0) {
 			timer--;
@@ -300,6 +305,11 @@ public class GangwayFrameBlockEntity extends SmartBlockEntity implements Gangway
 	}
 
 	@Override
+	public GangwayFrameMenu createMenu(int windowId, Inventory inv, Player player) {
+		return new GangwayFrameMenu(windowId, this);
+	}
+
+	@Override
 	public void setBlockState(BlockState blockState) {
 		GangwayFrameShape oldShape = getGangwayShape();
 		super.setBlockState(blockState);
@@ -312,6 +322,8 @@ public class GangwayFrameBlockEntity extends SmartBlockEntity implements Gangway
 	@Override
 	protected void write(CompoundTag tag, HolderLookup.Provider registries, boolean clientPacket) {
 		super.write(tag, registries, clientPacket);
+		tag.putFloat("rest_length", restLength);
+		tag.putInt("color", color);
 
 		Pair<BlockPos, UUID> gangwayPartner = SchematicContextUtil.writeTransform(gangwayPartnerPos, gangwayPartnerSubLevelID);
 
@@ -326,11 +338,18 @@ public class GangwayFrameBlockEntity extends SmartBlockEntity implements Gangway
 	@Override
 	public void writeSafe(CompoundTag tag, Provider registries) {
 		super.writeSafe(tag, registries);
+		tag.putDouble("rest_length", restLength);
+		tag.putInt("color", color);
 	}
 
 	@Override
 	protected void read(CompoundTag tag, HolderLookup.Provider registries, boolean clientPacket) {
 		super.read(tag, registries, clientPacket);
+
+		restLength = tag.getFloat("rest_length");
+		if(tag.contains("color")) {
+			color = tag.getInt("color");
+		}
 
 		Pair<BlockPos, UUID> gangwayPartner = SchematicContextUtil.readTransform(
 				NbtUtils.readBlockPos(tag, "gangway_partner").orElse(null),

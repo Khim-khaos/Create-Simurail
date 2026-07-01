@@ -57,7 +57,6 @@ import net.minecraft.world.MenuProvider;
 import net.minecraft.world.Nameable;
 import net.minecraft.world.entity.player.Inventory;
 import net.minecraft.world.entity.player.Player;
-import net.minecraft.world.inventory.AbstractContainerMenu;
 import net.minecraft.world.level.block.entity.BlockEntityType;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.block.state.properties.BlockStateProperties;
@@ -740,14 +739,18 @@ public class PhysicsBogeyBlockEntity extends KineticBlockEntity implements Namea
 		if(!options.enabled) {
 			return 0;
 		}
+		float stressMultiplier;
 		if(computerBehaviour.hasAttachedComputer() && computerOverrides.overrideStressMultiplier) {
-			return options.getStress() * (float)computerOverrides.getStressMultiplier();
+			stressMultiplier = (float)computerOverrides.getStressMultiplier();
 		}
-		return options.getStress() * (float)switch(options.controlMode) {
-		case STRENGTH -> getControlStrength();
-		case STRENGTH_INVERTED -> 1 - getControlStrength();
-		case null, default -> 1;
-		};
+		else {
+			stressMultiplier = (float)switch(options.controlMode) {
+			case STRENGTH -> getControlStrength();
+			case STRENGTH_INVERTED -> 1 - getControlStrength();
+			case null, default -> 1;
+			};
+		}
+		return options.getStress() * stressMultiplier;
 	}
 
 	@Override
@@ -815,7 +818,7 @@ public class PhysicsBogeyBlockEntity extends KineticBlockEntity implements Namea
 	}
 
 	@Override
-	public AbstractContainerMenu createMenu(int windowId, Inventory inv, Player player) {
+	public PhysicsBogeyMenu createMenu(int windowId, Inventory inv, Player player) {
 		return new PhysicsBogeyMenu(windowId, this);
 	}
 

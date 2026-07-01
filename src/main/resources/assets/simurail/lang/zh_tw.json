@@ -6,6 +6,19 @@
 	"item.simurail.inverted_physics_bogey": "倒置物理轉向架",
 	"item.simurail.steering_connector": "轉向連接器",
 
+	"block.simurail.gangway_frame.d": "下",
+	"block.simurail.gangway_frame.u": "上",
+	"block.simurail.gangway_frame.l": "左",
+	"block.simurail.gangway_frame.r": "右",
+	"block.simurail.gangway_frame.dl": "左下",
+	"block.simurail.gangway_frame.rd": "右下",
+	"block.simurail.gangway_frame.lu": "左上",
+	"block.simurail.gangway_frame.ur": "右上",
+	"block.simurail.gangway_frame.ld": "長 左下",
+	"block.simurail.gangway_frame.dr": "長 右下",
+	"block.simurail.gangway_frame.ul": "長 左上",
+	"block.simurail.gangway_frame.ru": "長 右上",
+
 	"item.simurail.steering_connector.same_block": "方塊位置相同",
 	"item.simurail.steering_connector.out_of_range": "超出範圍",
 	"item.simurail.steering_connector.cannot_connect": "無法連接至此位置",
@@ -55,6 +68,9 @@
 	"gui.simurail.physics_bogey.axle_spacing": "有效軸距",
 	"gui.simurail.physics_bogey.track_type": "軌道類型",
 	"gui.simurail.physics_bogey.options": "更改轉向架選項",
+
+	"gui.simurail.gangway_frame.shape": "形狀",
+	"gui.simurail.gangway_frame.rest_length": "靜止長度",
 
 	"subtitles.simurail.block.coupler.connect": "連結器連接",
 	"subtitles.simurail.block.coupler.disconnect": "連結器斷開",

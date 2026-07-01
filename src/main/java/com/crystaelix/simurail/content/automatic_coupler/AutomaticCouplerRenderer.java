@@ -15,6 +15,7 @@ import com.crystaelix.simurail.api.math.SimurailMathf;
 import com.crystaelix.simurail.api.util.RenderUtil;
 import com.crystaelix.simurail.content.SimurailPartialModels;
 import com.crystaelix.simurail.content.gangway_frame.GangwayFrame;
+import com.crystaelix.simurail.content.gangway_frame.GangwayFrameShape;
 import com.mojang.blaze3d.vertex.PoseStack;
 import com.mojang.blaze3d.vertex.VertexConsumer;
 import com.simibubi.create.foundation.blockEntity.renderer.SmartBlockEntityRenderer;
@@ -22,6 +23,7 @@ import com.simibubi.create.foundation.blockEntity.renderer.SmartBlockEntityRende
 import dev.engine_room.flywheel.api.visualization.VisualizationManager;
 import dev.engine_room.flywheel.lib.model.baked.PartialModel;
 import dev.ryanhcode.sable.Sable;
+import dev.ryanhcode.sable.companion.math.Pose3d;
 import dev.ryanhcode.sable.companion.math.Pose3dc;
 import dev.ryanhcode.sable.sublevel.ClientSubLevel;
 import net.createmod.catnip.render.CachedBuffers;
@@ -31,6 +33,7 @@ import net.minecraft.client.renderer.RenderType;
 import net.minecraft.client.renderer.blockentity.BlockEntityRendererProvider;
 import net.minecraft.client.renderer.texture.TextureAtlasSprite;
 import net.minecraft.core.BlockPos;
+import net.minecraft.core.Direction;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.inventory.InventoryMenu;
 import net.minecraft.world.level.Level;
@@ -92,6 +95,7 @@ public class AutomaticCouplerRenderer extends SmartBlockEntityRenderer<Automatic
 			CachedBuffers.partial(model, air).
 			translate(couplerOffset).
 			rotate(couplerRot).
+			color(be.color).
 			light(light).overlay(overlay).
 			renderInto(poseStack, vb);
 
@@ -99,6 +103,7 @@ public class AutomaticCouplerRenderer extends SmartBlockEntityRenderer<Automatic
 			translate(couplerOffset).
 			rotate(couplerRot).
 			translate(be.getLength(), 0, 0).
+			color(be.color).
 			light(light).overlay(overlay).
 			renderInto(poseStack, vb);
 
@@ -106,37 +111,56 @@ public class AutomaticCouplerRenderer extends SmartBlockEntityRenderer<Automatic
 		}
 
 		GangwayFrame partner = be.getGangwayPartner();
-		if(!be.hasGangwayPartner && be.gangwayTimer <= 0) {
+		if(!be.hasGangwayPartner && be.gangwayTimer <= 0 && be.gangwayRestLength <= 0) {
 			return;
 		}
 
-		be.getGangwayShape().quad(be.getFacing(), selfQuad);
+		Direction facing = be.getFacing();
+		GangwayFrameShape shape = be.getGangwayShape();
 		Vector3dc selfDir = be.getDirection();
 
+		shape.quad(facing, selfQuad);
+		shape.center(facing, restPose.position());
+		restPose.position().fma(be.gangwayRestLength * 2, selfDir);
+		restPose.orientation().set(be.getOrientation());
+
 		if(partner == null) {
-			partnerQuad.set(be.lastGangwayPartnerQuadOffset);
-			partnerDir.set(be.lastGangwayPartnerDir);
+			endPose.set(be.gangwayEndPose);
 		}
 		else {
 			BlockPos partnerPos = partner.getBlockPos();
 			ClientSubLevel partnerSubLevel = Sable.HELPER.getContainingClient(partnerPos);
-			partner.getGangwayShape().quad(partner.getFacing(), partnerQuad);
-			partnerQuad.add(partnerPos.getX(), partnerPos.getY(), partnerPos.getZ());
-			partnerDir.set(partner.getDirection());
-			if(selfSubLevel != partnerSubLevel) {
-				Pose3dc partnerPose = partnerSubLevel == null ? SimurailMath.POSE_I : partnerSubLevel.renderPose(partialTick);
-				partnerQuad.transformPosition(partnerPose);
-				partnerQuad.transformPositionInverse(selfPose);
-				partnerPose.transformNormal(partnerDir);
-				selfPose.transformNormalInverse(partnerDir);
-			}
-			partnerQuad.sub(pos.getX(), pos.getY(), pos.getZ());
+			Pose3dc partnerPose = partnerSubLevel == null ? SimurailMath.POSE_I : partnerSubLevel.renderPose(partialTick);
+
+			partner.getGangwayCenter(endPose.position());
+			partnerPose.transformPosition(endPose.position());
+			selfPose.transformPositionInverse(endPose.position());
+			endPose.position().sub(pos.getX(), pos.getY(), pos.getZ());
+
+			selfPose.orientation().conjugate(endPose.orientation());
+			endPose.orientation().mul(partnerPose.orientation());
+			endPose.orientation().mul(partner.getOrientation()).rotateY(Math.PI);
 		}
 
-		curve0.setHermite(selfQuad.v0, partnerQuad.v1, selfDir, partnerDir);
-		curve1.setHermite(selfQuad.v1, partnerQuad.v0, selfDir, partnerDir);
-		curve2.setHermite(selfQuad.v2, partnerQuad.v3, selfDir, partnerDir);
-		curve3.setHermite(selfQuad.v3, partnerQuad.v2, selfDir, partnerDir);
+		float endF;
+		if(be.hasGangwayPartner) {
+			endF = be.gangwayTimer > 0 ? (10 - be.gangwayTimer + partialTick) * 0.1F : 1;
+		}
+		else {
+			endF = be.gangwayTimer > 0 ? (be.gangwayTimer - partialTick) * 0.1F : 0;
+		}
+
+		restPose.lerp(endPose, endF, interpPose);
+
+		shape.quad(Direction.EAST, partnerQuad);
+		partnerQuad.sub(shape.center(Direction.EAST, dir0));
+		partnerQuad.transformPosition(interpPose);
+		interpPose.transformNormal(SimurailMath.DIR_XN, partnerDir);
+
+		curve0.setHermite(selfQuad.v0, partnerQuad.v0, selfDir, partnerDir);
+		curve1.setHermite(selfQuad.v1, partnerQuad.v1, selfDir, partnerDir);
+		curve2.setHermite(selfQuad.v2, partnerQuad.v2, selfDir, partnerDir);
+		curve3.setHermite(selfQuad.v3, partnerQuad.v3, selfDir, partnerDir);
 		curve0.lengthLUT(0, 0.5, lut0);
 		curve1.lengthLUT(0, 0.5, lut1);
 		curve2.lengthLUT(0, 0.5, lut2);
@@ -145,17 +169,11 @@ public class AutomaticCouplerRenderer extends SmartBlockEntityRenderer<Automatic
 		VertexConsumer vb = bufferSource.getBuffer(RenderType.solid());
 
 		poseStack.pushPose();
-
-		float endF;
-		if(!be.hasGangwayPartner) endF = (be.gangwayTimer - partialTick) * 0.1F;
-		else if(be.gangwayTimer > 0) endF = (10 - be.gangwayTimer + partialTick) * 0.1F;
-		else endF = 1F;
-		renderBellows(poseStack, endF, vb, light, overlay);
-
+		renderBellows(poseStack, vb, 0xFF000000 | be.gangwayColor, light, overlay);
 		poseStack.popPose();
 	}
 
-	private void renderBellows(PoseStack poseStack, float endF, VertexConsumer vb, int light, int overlay) {
+	private void renderBellows(PoseStack poseStack, VertexConsumer vb, int color, int light, int overlay) {
 		Function<ResourceLocation, TextureAtlasSprite> atlas = Minecraft.getInstance().getTextureAtlas(InventoryMenu.BLOCK_ATLAS);
 		TextureAtlasSprite bellowsSprite = atlas.apply(BELLOWS);
 		TextureAtlasSprite bellowsSideSprite = atlas.apply(BELLOWS_SIDE);
@@ -163,8 +181,8 @@ public class AutomaticCouplerRenderer extends SmartBlockEntityRenderer<Automatic
 		float texSize = 1F / SEGMENTS;
 
 		for(float i = 0; i < SEGMENTS; ++i) {
-			float f0 = i / SEGMENTS * endF;
-			float f1 = (i + 1) / SEGMENTS * endF;
+			float f0 = i / SEGMENTS;
+			float f1 = (i + 1) / SEGMENTS;
 			float texOffset = i / SEGMENTS;
 
 			double t00 = SimurailMath.f2t(f0, lut0) * 0.5;
@@ -183,7 +201,7 @@ public class AutomaticCouplerRenderer extends SmartBlockEntityRenderer<Automatic
 			vt1.sub(vt0, dir0);
 			vt3.sub(vt0, dir1);
 			dir0.cross(dir1, normal).normalize();
-			RenderUtil.renderSpriteQuad(poseStack, vb, bellowsSprite, vt0, vt1, vt2, vt3, 0, texOffset, 1, texSize, light, overlay, normal);
+			RenderUtil.renderSpriteQuad(poseStack, vb, bellowsSprite, vt0, vt1, vt2, vt3, 0, texOffset, 1, texSize, color, light, overlay, normal);
 
 			curve2.position(t21, vt0);
 			curve2.position(t20, vt1);
@@ -192,7 +210,7 @@ public class AutomaticCouplerRenderer extends SmartBlockEntityRenderer<Automatic
 			vt1.sub(vt0, dir0);
 			vt3.sub(vt0, dir1);
 			dir0.cross(dir1, normal).normalize();
-			RenderUtil.renderSpriteQuad(poseStack, vb, bellowsSprite, vt0, vt1, vt2, vt3, 0, texOffset, 1, texSize, light, overlay, normal);
+			RenderUtil.renderSpriteQuad(poseStack, vb, bellowsSprite, vt0, vt1, vt2, vt3, 0, texOffset, 1, texSize, color, light, overlay, normal);
 
 			curve1.position(t10, vt0);
 			curve2.position(t20, vt1);
@@ -201,7 +219,7 @@ public class AutomaticCouplerRenderer extends SmartBlockEntityRenderer<Automatic
 			vt1.sub(vt0, dir0);
 			vt3.sub(vt0, dir1);
 			dir0.cross(dir1, normal).normalize();
-			RenderUtil.renderSpriteQuad(poseStack, vb, bellowsSideSprite, vt0, vt1, vt2, vt3, texOffset, 0, texSize, 0.125F, light, overlay, normal);
+			RenderUtil.renderSpriteQuad(poseStack, vb, bellowsSideSprite, vt0, vt1, vt2, vt3, texOffset, 0, texSize, 0.125F, color, light, overlay, normal);
 
 			curve3.position(t30, vt0);
 			curve0.position(t00, vt1);
@@ -210,17 +228,17 @@ public class AutomaticCouplerRenderer extends SmartBlockEntityRenderer<Automatic
 			vt1.sub(vt0, dir0);
 			vt3.sub(vt0, dir1);
 			dir0.cross(dir1, normal).normalize();
-			RenderUtil.renderSpriteQuad(poseStack, vb, bellowsSideSprite, vt0, vt1, vt2, vt3, texOffset, 0, texSize, 0.125F, light, overlay, normal);
+			RenderUtil.renderSpriteQuad(poseStack, vb, bellowsSideSprite, vt0, vt1, vt2, vt3, texOffset, 0, texSize, 0.125F, color, light, overlay, normal);
 		}
 
-		curve1.position(SimurailMath.f2t(endF, lut1) * 0.5, vt0);
-		curve2.position(SimurailMath.f2t(endF, lut2) * 0.5, vt1);
-		curve3.position(SimurailMath.f2t(endF, lut3) * 0.5, vt2);
-		curve0.position(SimurailMath.f2t(endF, lut0) * 0.5, vt3);
+		curve1.position(0.5, vt0);
+		curve2.position(0.5, vt1);
+		curve3.position(0.5, vt2);
+		curve0.position(0.5, vt3);
 		vt1.sub(vt0, dir0);
 		vt3.sub(vt0, dir1);
 		dir0.cross(dir1, normal).normalize();
-		RenderUtil.renderSpriteQuad(poseStack, vb, bellowsSideSprite, vt0, vt1, vt2, vt3, 0, 0.125F, 1, 0.125F, light, overlay, normal);
+		RenderUtil.renderSpriteQuad(poseStack, vb, bellowsSideSprite, vt0, vt1, vt2, vt3, 0, 0.125F, 1, 0.125F, color, light, overlay, normal);
 	}
 
 	private final Vector3f couplerOffset = new Vector3f();
@@ -231,6 +249,9 @@ public class AutomaticCouplerRenderer extends SmartBlockEntityRenderer<Automatic
 	private final Quaternionf targetRot = new Quaternionf();
 	private final Quaternionf couplerRot = new Quaternionf();
 
+	private final Pose3d endPose = new Pose3d();
+	private final Pose3d restPose = new Pose3d();
+	private final Pose3d interpPose = new Pose3d();
 	private final Quad3d selfQuad = new Quad3d();
 	private final Quad3d partnerQuad = new Quad3d();
 	private final Vector3d partnerDir = new Vector3d();

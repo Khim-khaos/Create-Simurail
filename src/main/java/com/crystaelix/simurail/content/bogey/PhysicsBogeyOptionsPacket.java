@@ -9,16 +9,16 @@ import net.minecraft.network.codec.StreamCodec;
 import net.minecraft.network.protocol.common.custom.CustomPacketPayload;
 import net.minecraft.world.level.Level;
 
-public record PhysicsBogeySetOptionsPacket(BlockPos pos, PhysicsBogeyOptions options) implements CustomPacketPayload {
+public record PhysicsBogeyOptionsPacket(BlockPos pos, PhysicsBogeyOptions options) implements CustomPacketPayload {
 
-	public static final Type<PhysicsBogeySetOptionsPacket> TYPE = new Type<>(Simurail.id("physics_bogey_options"));
-	public static final StreamCodec<ByteBuf, PhysicsBogeySetOptionsPacket> CODEC = StreamCodec.composite(
-			BlockPos.STREAM_CODEC, PhysicsBogeySetOptionsPacket::pos,
-			PhysicsBogeyOptions.STREAM_CODEC, PhysicsBogeySetOptionsPacket::options,
-			PhysicsBogeySetOptionsPacket::new);
+	public static final Type<PhysicsBogeyOptionsPacket> TYPE = new Type<>(Simurail.id("physics_bogey_options"));
+	public static final StreamCodec<ByteBuf, PhysicsBogeyOptionsPacket> CODEC = StreamCodec.composite(
+			BlockPos.STREAM_CODEC, PhysicsBogeyOptionsPacket::pos,
+			PhysicsBogeyOptions.STREAM_CODEC, PhysicsBogeyOptionsPacket::options,
+			PhysicsBogeyOptionsPacket::new);
 
 	@Override
-	public Type<PhysicsBogeySetOptionsPacket> type() {
+	public Type<PhysicsBogeyOptionsPacket> type() {
 		return TYPE;
 	}
 

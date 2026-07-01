@@ -100,6 +100,7 @@ public class AutomaticCouplerVisual extends AbstractBlockEntityVisual<AutomaticC
 				translate(0.5F, 0.5F, 0.5F).
 				translate(couplerOffset).
 				rotate(couplerRot).
+				colorRgb(blockEntity.color).
 				setChanged();
 			}
 
@@ -110,6 +111,7 @@ public class AutomaticCouplerVisual extends AbstractBlockEntityVisual<AutomaticC
 				translate(couplerOffset).
 				rotate(couplerRot).
 				translate(blockEntity.getLength(), 0, 0).
+				colorRgb(blockEntity.color).
 				setChanged();
 			}
 		}

@@ -17,4 +17,7 @@ public class SimurailNodeConfigurations {
 			add(new Vec3(1, 0.5, 0.5)).
 			add(new Vec3(0.5, 0, 0.5)).
 			simple(Direction.SOUTH);
+	public static final NodeConfigurator AUTOMATIC_COUPLER = new NodeConfigurator.Builder().
+			add(new Vec3(0.5, 0.5, 0.125)).
+			simple(Direction.SOUTH);
 }

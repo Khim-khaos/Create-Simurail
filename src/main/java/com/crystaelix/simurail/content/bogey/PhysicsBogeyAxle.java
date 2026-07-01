@@ -499,7 +499,7 @@ public class PhysicsBogeyAxle {
 				double stress = bogey.calculateStressApplied();
 				double driveForceMultiplier = config.axleDriveForceFactor.get();
 				double driveMag = Math.min(Math.abs(diffSpeed), Math.abs(targetSpeed)) * stress * driveForceMultiplier;
-				driveForce = diffSign * driveMag * Math.clamp(friction, 0.05, 1);
+				driveForce = diffSign * driveMag * (1 - brakeStrength) * Math.clamp(friction, 0.05, 1);
 			}
 
 			queuedForce.fma((driveForce - brakeForce) * timeStep, bogeyTrackFrame.direction);
@@ -581,7 +581,7 @@ public class PhysicsBogeyAxle {
 				double stress = bogey.calculateStressApplied();
 				double driveForceMultiplier = config.axleDriveForceFactor.get();
 				double driveMag = Math.min(Math.abs(diffSpeed), Math.abs(targetSpeed)) * stress * driveForceMultiplier;
-				driveForce = diffSign * driveMag * Math.clamp(friction, 0.05, 1);
+				driveForce = diffSign * driveMag * (1 - brakeStrength) * Math.clamp(friction, 0.05, 1);
 			}
 
 			queuedForce.fma((driveForce - brakeForce) * timeStep, bogeyAxleFrame.direction);

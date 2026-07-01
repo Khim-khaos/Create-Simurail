@@ -4,8 +4,8 @@
 	"textures": {
 		"particle": "create:block/industrial_iron_block",
 		"coupler": "simurail:block/coupler/automatic/block",
-		"bar": "simurail:block/coupler/bar",
-		"head": "simurail:block/coupler/automatic/knuckle"
+		"bar": "simurail:block/coupler/bar_item",
+		"head": "simurail:block/coupler/automatic/knuckle_item"
 	},
 	"elements": [
 		{

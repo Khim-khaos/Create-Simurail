@@ -4,6 +4,7 @@ import java.util.EnumSet;
 import java.util.Locale;
 import java.util.Set;
 import java.util.function.DoubleFunction;
+import java.util.function.IntFunction;
 
 import org.joml.Vector2d;
 import org.joml.Vector2dc;
@@ -11,8 +12,14 @@ import org.joml.Vector3d;
 
 import com.crystaelix.simurail.api.math.Quad3d;
 
+import io.netty.buffer.ByteBuf;
 import net.createmod.catnip.math.VoxelShaper;
 import net.minecraft.core.Direction;
+import net.minecraft.network.chat.Component;
+import net.minecraft.network.codec.ByteBufCodecs;
+import net.minecraft.network.codec.StreamCodec;
+import net.minecraft.util.ByIdMap;
+import net.minecraft.util.ByIdMap.OutOfBoundsStrategy;
 import net.minecraft.util.StringRepresentable;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.phys.shapes.Shapes;
@@ -74,6 +81,9 @@ public enum GangwayFrameShape implements StringRepresentable {
 			new Vector2d(), new Vector2d(),
 			z -> VoxelShaper.forHorizontal(Shapes.empty(), Direction.SOUTH)),
 	;
+
+	public static final IntFunction<GangwayFrameShape> BY_ID = ByIdMap.continuous(GangwayFrameShape::ordinal, values(), OutOfBoundsStrategy.ZERO);
+	public static final StreamCodec<ByteBuf, GangwayFrameShape> STREAM_CODEC = ByteBufCodecs.idMapper(BY_ID, GangwayFrameShape::ordinal);
 
 	public static final Set<GangwayFrameShape> D_CW = EnumSet.of(D, DL, DR);
 	public static final Set<GangwayFrameShape> U_CW = EnumSet.of(U, UR, UL);
@@ -142,6 +152,10 @@ public enum GangwayFrameShape implements StringRepresentable {
 	@Override
 	public String getSerializedName() {
 		return name().toLowerCase(Locale.ROOT);
+	}
+
+	public Component getDisplayName() {
+		return Component.translatable("block.simurail.gangway_frame." + getSerializedName());
 	}
 
 	public Vector3d innerStart(Direction facing, Vector3d dest) {
@@ -252,7 +266,7 @@ public enum GangwayFrameShape implements StringRepresentable {
 	}
 
 	public VoxelShape getShapeForLength(Direction facing, double length) {
-		return getShape(facing, (int)Math.round(length) + 3);
+		return getShape(facing, (int)Math.round(length) - 1);
 	}
 
 	public VoxelShape getSubLevelShape(Direction facing) {
