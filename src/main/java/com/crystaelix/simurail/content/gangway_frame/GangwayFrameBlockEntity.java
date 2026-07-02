@@ -29,6 +29,7 @@ import net.minecraft.nbt.CompoundTag;
 import net.minecraft.nbt.NbtUtils;
 import net.minecraft.network.chat.Component;
 import net.minecraft.sounds.SoundSource;
+import net.minecraft.util.Mth;
 import net.minecraft.world.MenuProvider;
 import net.minecraft.world.entity.player.Inventory;
 import net.minecraft.world.entity.player.Player;
@@ -238,7 +239,7 @@ public class GangwayFrameBlockEntity extends SmartBlockEntity implements MenuPro
 				if(level.getBlockEntity(gangwayPartnerPos) instanceof GangwayFrame partner) {
 					SubLevel selfSubLevel = Sable.HELPER.getContaining(this);
 					SubLevel otherSubLevel = Sable.HELPER.getContaining(level, gangwayPartnerPos);
-					if(selfSubLevel != otherSubLevel && Sable.HELPER.distanceSquaredWithSubLevels(level, getBlockPos().getCenter(), gangwayPartnerPos.getCenter()) > maxDist * maxDist) {
+					if(selfSubLevel != otherSubLevel && Sable.HELPER.distanceSquaredWithSubLevels(level, getBlockPos().getCenter(), gangwayPartnerPos.getCenter()) > Mth.square(maxDist)) {
 						removeGangwayPartner();
 					}
 					else if(partner.getGangwayPartner() != this) {

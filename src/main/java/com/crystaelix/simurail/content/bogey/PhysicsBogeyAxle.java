@@ -85,6 +85,7 @@ public class PhysicsBogeyAxle {
 	protected TravellingPoint probe = new TravellingPoint();
 
 	protected GenericConstraintHandle joint;
+	protected GenericConstraintHandle bogeyJoint;
 	protected boolean yFixed = false;
 	protected boolean zFixed = false;
 	protected double yFixedTimer = 0;
@@ -363,10 +364,12 @@ public class PhysicsBogeyAxle {
 			globalTrackJointRot.set(globalTrackRot);
 		}
 		trackSubLevelPose.orientation().conjugate(trackJointRot).mul(globalTrackJointRot);
+		bogeyAxleFrame.orientation(bogeyTrackJointRot);
+
+		SimurailPhysicsConfig config = SimurailConfig.SERVER.physics;
+		SubLevelPhysicsSystem physics = SubLevelContainer.getContainer(subLevel.getLevel()).physicsSystem();
 		if(joint == null || !joint.isValid()) {
-			removeJoint();
-			SimurailPhysicsConfig config = SimurailConfig.SERVER.physics;
-			SubLevelPhysicsSystem physics = SubLevelContainer.getContainer(subLevel.getLevel()).physicsSystem();
+			joint = null;
 			double linearDamping = config.axlePassiveLinearDamping.get();
 			double angularDamping = config.axlePassiveAngularDamping.get();
 			GenericConstraintConfiguration jointConfig = SimurailJoints.railJoint(
@@ -383,6 +386,17 @@ public class PhysicsBogeyAxle {
 		}
 		else {
 			joint.setFrame1(trackFrame.position, trackJointRot);
+		}
+		if(bogeyJoint == null || !bogeyJoint.isValid()) {
+			bogeyJoint = null;
+			GenericConstraintConfiguration jointConfig = SimurailJoints.freeJoint(
+					trackFrame.position, bogeyAxleFrame.position,
+					trackJointRot, bogeyTrackJointRot);
+			bogeyJoint = physics.getPipeline().addConstraint(trackSubLevel, subLevel, jointConfig);
+		}
+		else {
+			bogeyJoint.setFrame1(trackFrame.position, trackJointRot);
+			bogeyJoint.setFrame2(bogeyAxleFrame.position, bogeyTrackJointRot);
 		}
 	}
 
@@ -425,7 +439,7 @@ public class PhysicsBogeyAxle {
 
 		double t = trackSegment.projectT(trackAxleFrame.position);
 		trackSubLevelPose.transformNormal(trackSegment.curvature(t, globalTrackCurvature));
-		double speedSq = speed * speed;
+		double speedSq = Mth.square(speed);
 		boolean checkVertical = bogey.isInverted() || !bogey.options.allowVerticalMovement;
 
 		if(kLateral > SimurailMath.EPSILON) {
@@ -448,12 +462,15 @@ public class PhysicsBogeyAxle {
 
 		if(checkVertical) {
 			joint.setLimit(ConstraintJointAxis.LINEAR_Y, -yLimit, yLimit);
+			bogeyJoint.setLimit(ConstraintJointAxis.LINEAR_Y, -yLimit - 0.0625, yLimit + 0.0625);
 		}
 		else {
 			joint.setLimit(ConstraintJointAxis.LINEAR_Y, -yLimit, Float.MAX_VALUE);
+			bogeyJoint.setLimit(ConstraintJointAxis.LINEAR_Y, -yLimit - 0.0625, Float.MAX_VALUE);
 		}
 
 		joint.setLimit(ConstraintJointAxis.LINEAR_Z, -zLimit, zLimit);
+		bogeyJoint.setLimit(ConstraintJointAxis.LINEAR_Z, -zLimit - 0.125, zLimit + 0.125);
 	}
 
 	protected void updateForces(ServerSubLevel subLevel, RigidBodyHandle handle, double timeStep) {
@@ -628,6 +645,10 @@ public class PhysicsBogeyAxle {
 		if(joint != null) {
 			joint.remove();
 			joint = null;
+		}
+		if(bogeyJoint != null) {
+			bogeyJoint.remove();
+			bogeyJoint = null;
 		}
 	}
 
@@ -862,6 +883,7 @@ public class PhysicsBogeyAxle {
 
 	protected final Quaterniond globalTrackJointRot = new Quaterniond();
 	protected final Quaterniond trackJointRot = new Quaterniond();
+	protected final Quaterniond bogeyTrackJointRot = new Quaterniond();
 
 	protected final Vector3d globalTrackCurvature = new Vector3d();
 

@@ -478,7 +478,7 @@ public class AutomaticCouplerBlockEntity extends SmartBlockEntity implements Men
 				if(level.getBlockEntity(gangwayPartnerPos) instanceof GangwayFrame partner) {
 					SubLevel selfSubLevel = Sable.HELPER.getContaining(this);
 					SubLevel otherSubLevel = Sable.HELPER.getContaining(level, gangwayPartnerPos);
-					if(selfSubLevel != otherSubLevel && Sable.HELPER.distanceSquaredWithSubLevels(level, getBlockPos().getCenter(), gangwayPartnerPos.getCenter()) > maxDist * maxDist) {
+					if(selfSubLevel != otherSubLevel && Sable.HELPER.distanceSquaredWithSubLevels(level, getBlockPos().getCenter(), gangwayPartnerPos.getCenter()) > Mth.square(maxDist)) {
 						removeGangwayPartner();
 					}
 					else if(partner.getGangwayPartner() != this) {
@@ -531,10 +531,16 @@ public class AutomaticCouplerBlockEntity extends SmartBlockEntity implements Men
 						this.partnerJointPos.sub(this.jointPos, this.jointDir);
 						partner.jointPos.sub(partner.partnerJointPos, partner.jointDir);
 
+						double jointLength = this.getLength() + partner.getLength();
+
 						SimurailMath.rot(this.jointDir, this.jointRot);
 						SimurailMath.rot(partner.jointDir, partner.jointRot);
-
-						double jointLength = this.getLength() + partner.getLength();
+						
+						if(jointPos.distanceSquared(partnerJointPos) > Mth.square(jointLength + 1)) {
+							removePartner();
+							removeJoint();
+							return;
+						}
 
 						double invMass = subLevel.getMassTracker().getInverseNormalMass(this.jointPos, this.jointDir);
 						double partnerInvMass = partnerSubLevel == null ? 0 : partnerSubLevel.getMassTracker().getInverseNormalMass(partner.jointPos, partner.jointDir);
@@ -550,7 +556,7 @@ public class AutomaticCouplerBlockEntity extends SmartBlockEntity implements Men
 							removeJoint();
 							double linearDamping = config.couplerPassiveLinearDamping.get();
 							double angularDamping = config.couplerPassiveAngularDamping.get();
-							GenericConstraintConfiguration jointConfig = SimurailJoints.couplerJoint(
+							GenericConstraintConfiguration jointConfig = SimurailJoints.freeJoint(
 									this.jointPos, partner.jointPos,
 									this.jointRot, partner.jointRot);
 							joint = physics.getPipeline().addConstraint(subLevel, partnerSubLevel, jointConfig);

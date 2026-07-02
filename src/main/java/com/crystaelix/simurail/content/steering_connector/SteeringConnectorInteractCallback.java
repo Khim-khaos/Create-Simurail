@@ -20,6 +20,7 @@ import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.core.particles.DustParticleOptions;
 import net.minecraft.network.chat.Component;
+import net.minecraft.util.Mth;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.item.context.UseOnContext;
 import net.minecraft.world.level.Level;
@@ -123,14 +124,14 @@ public class SteeringConnectorInteractCallback implements InteractCallback {
 		SubLevel subLevel1 = Sable.HELPER.getContaining(level, pos1);
 		SubLevel subLevel2 = Sable.HELPER.getContaining(level, pos2);
 		if(subLevel1 == subLevel2) {
-			return pos1.distSqr(pos2) > range * range;
+			return pos1.distSqr(pos2) > Mth.square(range);
 		}
 		else {
 			Pose3dc pose1 = subLevel1 == null ? SimurailMath.POSE_I : subLevel1.logicalPose();
 			Pose3dc pose2 = subLevel2 == null ? SimurailMath.POSE_I : subLevel2.logicalPose();
 			Vec3 globalPos1 = pose1.transformPosition(pos1.getCenter());
 			Vec3 globalPos2 = pose2.transformPosition(pos2.getCenter());
-			return globalPos1.distanceToSqr(globalPos2) > range * range;
+			return globalPos1.distanceToSqr(globalPos2) > Mth.square(range);
 		}
 	}
 

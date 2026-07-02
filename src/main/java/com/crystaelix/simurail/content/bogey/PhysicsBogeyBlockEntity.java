@@ -53,6 +53,7 @@ import net.minecraft.core.HolderLookup;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.nbt.NbtUtils;
 import net.minecraft.network.chat.Component;
+import net.minecraft.util.Mth;
 import net.minecraft.world.MenuProvider;
 import net.minecraft.world.Nameable;
 import net.minecraft.world.entity.player.Inventory;
@@ -501,7 +502,7 @@ public class PhysicsBogeyBlockEntity extends KineticBlockEntity implements Namea
 				if(level.getBlockEntity(connectionFront) instanceof PhysicsBogeyBlockEntity other) {
 					SubLevel selfSubLevel = Sable.HELPER.getContaining(this);
 					SubLevel otherSubLevel = Sable.HELPER.getContaining(other);
-					if(selfSubLevel != otherSubLevel && Sable.HELPER.distanceSquaredWithSubLevels(level, getBlockPos().getCenter(), connectionFront.getCenter()) > maxDist * maxDist) {
+					if(selfSubLevel != otherSubLevel && Sable.HELPER.distanceSquaredWithSubLevels(level, getBlockPos().getCenter(), connectionFront.getCenter()) > Mth.square(maxDist)) {
 						disconnectSteering(true);
 					}
 					else if(other.getConnected(connectionFrontToFront) != this) {
@@ -516,7 +517,7 @@ public class PhysicsBogeyBlockEntity extends KineticBlockEntity implements Namea
 				if(level.getBlockEntity(connectionBack) instanceof PhysicsBogeyBlockEntity other) {
 					SubLevel selfSubLevel = Sable.HELPER.getContaining(this);
 					SubLevel otherSubLevel = Sable.HELPER.getContaining(other);
-					if(selfSubLevel != otherSubLevel && Sable.HELPER.distanceSquaredWithSubLevels(level, getBlockPos().getCenter(), connectionBack.getCenter()) > maxDist * maxDist) {
+					if(selfSubLevel != otherSubLevel && Sable.HELPER.distanceSquaredWithSubLevels(level, getBlockPos().getCenter(), connectionBack.getCenter()) > Mth.square(maxDist)) {
 						disconnectSteering(false);
 					}
 					else if(other.getConnected(connectionBackToFront) != this) {
