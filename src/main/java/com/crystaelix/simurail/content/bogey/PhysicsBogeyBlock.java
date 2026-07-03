@@ -1,11 +1,8 @@
 package com.crystaelix.simurail.content.bogey;
 
 import com.crystaelix.simurail.content.SimurailBlockEntities;
-import com.crystaelix.simurail.content.SimurailItemTags;
 import com.crystaelix.simurail.content.SimurailItems;
-import com.simibubi.create.AllItems;
 import com.simibubi.create.content.kinetics.base.HorizontalKineticBlock;
-import com.simibubi.create.content.kinetics.base.KineticBlock;
 import com.simibubi.create.content.trains.track.TrackBlock;
 import com.simibubi.create.foundation.block.IBE;
 import com.simibubi.create.foundation.block.ProperWaterloggedBlock;
@@ -20,7 +17,6 @@ import net.minecraft.world.InteractionResult;
 import net.minecraft.world.ItemInteractionResult;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.player.Player;
-import net.minecraft.world.item.BlockItem;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.context.BlockPlaceContext;
 import net.minecraft.world.item.context.UseOnContext;
@@ -147,17 +143,13 @@ public class PhysicsBogeyBlock extends HorizontalKineticBlock implements IBE<Phy
 
 	@Override
 	protected ItemInteractionResult useItemOn(ItemStack stack, BlockState state, Level level, BlockPos pos, Player player, InteractionHand hand, BlockHitResult hitResult) {
-		if(stack.is(AllItems.WRENCH) || stack.is(SimurailItems.STEERING_CONNECTOR) || stack.is(SimurailItemTags.CEE_WIRE_SPOOLS)) {
-			return ItemInteractionResult.PASS_TO_DEFAULT_BLOCK_INTERACTION;
-		}
-		if(stack.getItem() instanceof BlockItem blockItem && blockItem.getBlock() instanceof KineticBlock && hasShaftTowards(level, pos, state, hitResult.getDirection())) {
-			return ItemInteractionResult.PASS_TO_DEFAULT_BLOCK_INTERACTION;
-		}
-		if(level.isClientSide()) {
+		if(stack.isEmpty()) {
+			if(!level.isClientSide()) {
+				withBlockEntityDo(level, pos, be -> player.openMenu(be, buf -> PhysicsBogeyMenu.prepare(buf, be, player.isSecondaryUseActive())));
+			}
 			return ItemInteractionResult.SUCCESS;
 		}
-		withBlockEntityDo(level, pos, be -> player.openMenu(be, buf -> PhysicsBogeyMenu.prepare(buf, be, player.isSecondaryUseActive())));
-		return ItemInteractionResult.SUCCESS;
+		return ItemInteractionResult.PASS_TO_DEFAULT_BLOCK_INTERACTION;
 	}
 
 	@Override
