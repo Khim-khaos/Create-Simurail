@@ -21,6 +21,7 @@ import dev.ryanhcode.sable.sublevel.SubLevel;
 import net.createmod.catnip.data.Couple;
 import net.createmod.catnip.data.Iterate;
 import net.createmod.catnip.data.Pair;
+import net.createmod.ponder.api.level.PonderLevel;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.core.HolderLookup;
@@ -191,9 +192,10 @@ public class GangwayFrameBlockEntity extends SmartBlockEntity implements MenuPro
 		GangwayFrame partner = getGangwayPartner();
 		GangwayFrameShape shape = getGangwayShape();
 		Direction facing = getFacing();
+		boolean newHasPartner = partner != null || level instanceof PonderLevel && gangwayPartnerPos != null;
 
-		if(partner != null != hasPartner) {
-			hasPartner = partner != null;
+		if(newHasPartner != hasPartner) {
+			hasPartner = newHasPartner;
 			timer = 10 - timer;
 		}
 

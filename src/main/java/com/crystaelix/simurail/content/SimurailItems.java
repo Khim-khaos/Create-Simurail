@@ -15,6 +15,7 @@ public class SimurailItems {
 			register();
 	public static final ItemEntry<SteeringConnectorItem> STEERING_CONNECTOR = REGISTRATE.
 			item("steering_connector", SteeringConnectorItem::new).
+			properties(p -> p.stacksTo(1)).
 			register();
 
 	public static void register() {

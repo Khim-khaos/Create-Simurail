@@ -19,24 +19,24 @@ public class RailwaysTracks {
 			Component.translatable("simurail_track_type.railways.monorail"),
 			Component.translatable("simurail_track_type.railways.monorail.short"),
 			true,
-			SimurailConfig.SERVER.compat.axleMonorailLateralMaxSpeedFactor::get,
-			SimurailConfig.SERVER.compat.axleMonorailVerticalMaxSpeedFactor::get,
+			SimurailConfig.server().compat.axleMonorailLateralMaxSpeedFactor::get,
+			SimurailConfig.server().compat.axleMonorailVerticalMaxSpeedFactor::get,
 			CRBlocks.MONORAIL_TRACK::getDefaultState),
 	NARROW = new TrackTypeEntry(
 			CRTrackType.NARROW_GAUGE,
 			Component.translatable("simurail_track_type.railways.narrow"),
 			Component.translatable("simurail_track_type.railways.narrow.short"),
 			false,
-			SimurailConfig.SERVER.compat.axleNarrowLateralMaxSpeedFactor::get,
-			SimurailConfig.SERVER.compat.axleNarrowVerticalMaxSpeedFactor::get,
+			SimurailConfig.server().compat.axleNarrowLateralMaxSpeedFactor::get,
+			SimurailConfig.server().compat.axleNarrowVerticalMaxSpeedFactor::get,
 			() -> CRTrackMaterials.NARROW_GAUGE_ANDESITE.getBlockSupplier().get().defaultBlockState()),
 	WIDE = new TrackTypeEntry(
 			CRTrackType.WIDE_GAUGE,
 			Component.translatable("simurail_track_type.railways.wide"),
 			Component.translatable("simurail_track_type.railways.wide.short"),
 			false,
-			SimurailConfig.SERVER.compat.axleWideLateralMaxSpeedFactor::get,
-			SimurailConfig.SERVER.compat.axleWideVerticalMaxSpeedFactor::get,
+			SimurailConfig.server().compat.axleWideLateralMaxSpeedFactor::get,
+			SimurailConfig.server().compat.axleWideVerticalMaxSpeedFactor::get,
 			() -> CRTrackMaterials.WIDE_GAUGE_ANDESITE.getBlockSupplier().get().defaultBlockState());
 
 	public static void register() {

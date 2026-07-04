@@ -2,8 +2,10 @@ package com.crystaelix.simurail;
 
 import com.crystaelix.simurail.content.SimurailInteractCallbacks;
 import com.crystaelix.simurail.content.SimurailPartialModels;
+import com.crystaelix.simurail.ponder.SimurailPonderPlugin;
 
 import net.createmod.catnip.config.ui.BaseConfigScreen;
+import net.createmod.ponder.foundation.PonderIndex;
 import net.neoforged.api.distmarker.Dist;
 import net.neoforged.bus.api.IEventBus;
 import net.neoforged.bus.api.SubscribeEvent;
@@ -18,6 +20,7 @@ public class SimurailClient {
 	public SimurailClient(IEventBus modEventBus, ModContainer modContainer) {
 		modEventBus.register(this);
 		modContainer.registerExtensionPoint(IConfigScreenFactory.class, (c, l) -> new BaseConfigScreen(l, Simurail.MOD_ID));
+		PonderIndex.addPlugin(new SimurailPonderPlugin());
 	}
 
 	@SubscribeEvent

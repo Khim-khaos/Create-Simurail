@@ -106,7 +106,7 @@ public class PhysicsBogeyBlockEntity extends KineticBlockEntity implements Namea
 	protected GenericConstraintHandle pivotJoint;
 	protected final PhysicsBogeyAxle axleFront;
 	protected final PhysicsBogeyAxle axleBack;
-	protected double visualSpeed = 0;
+	public double visualSpeed = 0;
 	protected double lastVisualSpeed = 0;
 
 	// Client rendering components
@@ -217,10 +217,10 @@ public class PhysicsBogeyBlockEntity extends KineticBlockEntity implements Namea
 	public double connectionRange(SteeringConnectable other) {
 		if(other instanceof PhysicsBogeyBlockEntity otherBogey) {
 			if(Sable.HELPER.getContaining(this) == Sable.HELPER.getContaining(otherBogey)) {
-				return SimurailConfig.SERVER.blocks.bogeyConnectionRangeSame.get();
+				return SimurailConfig.server().blocks.bogeyConnectionRangeSame.get();
 			}
 			else {
-				return SimurailConfig.SERVER.blocks.bogeyConnectionRangeDifferent.get();
+				return SimurailConfig.server().blocks.bogeyConnectionRangeDifferent.get();
 			}
 		}
 		if(other instanceof AutomaticCouplerBlockEntity) {
@@ -431,7 +431,7 @@ public class PhysicsBogeyBlockEntity extends KineticBlockEntity implements Namea
 	}
 
 	protected void createPivot(ServerSubLevel subLevel) {
-		SimurailPhysicsConfig config = SimurailConfig.SERVER.physics;
+		SimurailPhysicsConfig config = SimurailConfig.server().physics;
 		SubLevelPhysicsSystem physics = SubLevelContainer.getContainer(subLevel.getLevel()).physicsSystem();
 		if(pivot == null || pivot.isRemoved()) {
 			pivot = new AttachableBoxPhysicsObject(subLevel, pivotPose, new Vector3d(0.5, 0.125, 0.125), config.bogeyPivotMass.get());
@@ -510,7 +510,7 @@ public class PhysicsBogeyBlockEntity extends KineticBlockEntity implements Namea
 			if(Sable.HELPER.getContaining(this) instanceof ServerSubLevel) {
 			}
 
-			double maxDist = SimurailConfig.SERVER.blocks.bogeyConnectionRangeDifferent.get();
+			double maxDist = SimurailConfig.server().blocks.bogeyConnectionRangeDifferent.get();
 			if(connectionFront != null) {
 				if(level.getBlockEntity(connectionFront) instanceof PhysicsBogeyBlockEntity other) {
 					SubLevel selfSubLevel = Sable.HELPER.getContaining(this);
@@ -611,7 +611,7 @@ public class PhysicsBogeyBlockEntity extends KineticBlockEntity implements Namea
 
 		queuedTorque.zero();
 
-		SimurailPhysicsConfig config = SimurailConfig.SERVER.physics;
+		SimurailPhysicsConfig config = SimurailConfig.server().physics;
 
 		// Linear Y
 		if(options.allowVerticalOffset) {

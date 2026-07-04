@@ -16,8 +16,8 @@ public class SimurailTracks {
 			Component.translatable("simurail_track_type.create.standard"),
 			Component.translatable("simurail_track_type.create.standard.short"),
 			false,
-			SimurailConfig.SERVER.physics.axleStandardLateralMaxSpeedFactor::get,
-			SimurailConfig.SERVER.physics.axleStandardVerticalMaxSpeedFactor::get,
+			SimurailConfig.server().physics.axleStandardLateralMaxSpeedFactor::get,
+			SimurailConfig.server().physics.axleStandardVerticalMaxSpeedFactor::get,
 			AllBlocks.TRACK::getDefaultState);
 
 	public static void register() {

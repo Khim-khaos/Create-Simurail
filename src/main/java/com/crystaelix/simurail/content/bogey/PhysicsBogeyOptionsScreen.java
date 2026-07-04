@@ -188,7 +188,7 @@ public class PhysicsBogeyOptionsScreen extends PhysicsBogeyBaseScreen {
 		tiltInput.format(i -> Component.literal(i + "%"));
 		tiltInput.writingTo(tiltLabel);
 		tiltInput.setState((int)(options.getTiltStrength() * 100));
-		tiltInput.calling(i -> options.setTiltStrength(i * 0.01));
+		tiltInput.calling(i -> options.setTiltStrength(i * 0.01F));
 
 		connectorInput = new SelectionScrollInput(x + 45, y + 177, 109, 18);
 		connectorInput.forOptions(CONNECTOR_OPTIONS);

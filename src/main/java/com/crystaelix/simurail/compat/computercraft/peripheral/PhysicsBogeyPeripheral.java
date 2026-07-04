@@ -101,7 +101,7 @@ public class PhysicsBogeyPeripheral extends SyncedPeripheral<PhysicsBogeyBlockEn
 
 	@LuaFunction(mainThread = true)
 	public final void setTiltStrength(double tiltStrength) {
-		blockEntity.getOptions().setTiltStrength(tiltStrength);
+		blockEntity.getOptions().setTiltStrength((float)tiltStrength);
 		blockEntity.setChanged();
 	}
 

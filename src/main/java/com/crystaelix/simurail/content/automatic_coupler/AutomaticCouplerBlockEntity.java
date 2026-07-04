@@ -115,8 +115,8 @@ public class AutomaticCouplerBlockEntity extends SmartBlockEntity implements Men
 	}
 
 	public void cycleLength() {
+		isShort = !isShort;
 		if(!level.isClientSide()) {
-			isShort = !isShort;
 			setChanged();
 			sendData();
 			if(partnerPos != null && Sable.HELPER.getContaining(this) instanceof ServerSubLevel subLevel) {
@@ -127,15 +127,17 @@ public class AutomaticCouplerBlockEntity extends SmartBlockEntity implements Men
 	}
 
 	public void cycleType() {
+		type = CouplerTypeRegistry.next(type);
+		if(type == null) {
+			type = SimurailCouplers.KNUCKLE;
+		}
 		if(!level.isClientSide()) {
-			type = CouplerTypeRegistry.next(type);
-			if(type == null) {
-				type = SimurailCouplers.KNUCKLE;
-			}
 			setChanged();
 			sendData();
-			if(partnerPos != null && level.getBlockEntity(partnerPos) instanceof AutomaticCouplerBlockEntity partner) {
-				partner.type = type;
+		}
+		if(partnerPos != null && level.getBlockEntity(partnerPos) instanceof AutomaticCouplerBlockEntity partner) {
+			partner.type = type;
+			if(!level.isClientSide()) {
 				partner.setChanged();
 				partner.sendData();
 			}
@@ -266,7 +268,7 @@ public class AutomaticCouplerBlockEntity extends SmartBlockEntity implements Men
 	@Override
 	public double connectionRange(SteeringConnectable other) {
 		if(other instanceof PhysicsBogeyBlockEntity) {
-			return SimurailConfig.SERVER.blocks.couplerConnectionRange.get();
+			return SimurailConfig.server().blocks.couplerConnectionRange.get();
 		}
 		return 0;
 	}
@@ -517,7 +519,7 @@ public class AutomaticCouplerBlockEntity extends SmartBlockEntity implements Men
 						partner.removeJoint();
 					}
 					if(partner.joint == null) {
-						SimurailPhysicsConfig config = SimurailConfig.SERVER.physics;
+						SimurailPhysicsConfig config = SimurailConfig.server().physics;
 
 						Pose3dc selfPose = subLevel.logicalPose();
 						Pose3dc partnerPose = partnerSubLevel == null ? SimurailMath.POSE_I : partnerSubLevel.logicalPose();

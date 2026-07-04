@@ -14,18 +14,18 @@ import net.minecraft.network.codec.StreamCodec;
 import net.minecraft.network.protocol.common.custom.CustomPacketPayload;
 import net.minecraft.world.level.Level;
 
-public record PhysicsBogeyRenderDataPacket(BlockPos pos, Vector3dc pivotOffset, Quaterniondc pivotRot, double visualSpeed) implements CustomPacketPayload {
+public record PhysicsBogeyRenderDataPacket(BlockPos pos, Vector3dc pivotOffset, Quaterniondc pivotRot, float visualSpeed) implements CustomPacketPayload {
 
 	public static final Type<PhysicsBogeyRenderDataPacket> TYPE = new Type<>(Simurail.id("physics_bogey_render_data"));
 	public static final StreamCodec<ByteBuf, PhysicsBogeyRenderDataPacket> CODEC = StreamCodec.composite(
 			BlockPos.STREAM_CODEC, PhysicsBogeyRenderDataPacket::pos,
-			SimurailStreamCodecs.VECTOR3D, PhysicsBogeyRenderDataPacket::pivotOffset,
-			SimurailStreamCodecs.QUATERNIOND, PhysicsBogeyRenderDataPacket::pivotRot,
-			ByteBufCodecs.DOUBLE, PhysicsBogeyRenderDataPacket::visualSpeed,
+			SimurailStreamCodecs.VECTOR3D_F, PhysicsBogeyRenderDataPacket::pivotOffset,
+			SimurailStreamCodecs.QUATERNIOND_F, PhysicsBogeyRenderDataPacket::pivotRot,
+			ByteBufCodecs.FLOAT, PhysicsBogeyRenderDataPacket::visualSpeed,
 			PhysicsBogeyRenderDataPacket::new);
 
 	public PhysicsBogeyRenderDataPacket(PhysicsBogeyBlockEntity bogey) {
-		this(bogey.getBlockPos(), bogey.localPivotOffset, bogey.localPivotRot, bogey.visualSpeed);
+		this(bogey.getBlockPos(), bogey.localPivotOffset, bogey.localPivotRot, (float)bogey.visualSpeed);
 	}
 
 	@Override

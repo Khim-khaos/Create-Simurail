@@ -179,7 +179,7 @@ public class PhysicsBogeyAxle {
 
 	protected void updateOffset(ServerSubLevel subLevel, double timeStep) {
 		if(offsetTimer > 0) {
-			offsetTimer -= timeStep / SimurailConfig.SERVER.physics.axleSpacingUpdateTime.get();
+			offsetTimer -= timeStep / SimurailConfig.server().physics.axleSpacingUpdateTime.get();
 			if(offsetTimer > 0) {
 				targetOffset.lerp(lastOffset, offsetTimer, axleFrame.position);
 			}
@@ -214,7 +214,7 @@ public class PhysicsBogeyAxle {
 						}
 						if(nextSegment.inProjectionRange(trackAxleFrame.position, trackAxleFrame.vertical)) {
 							trackSegment = nextSegment;
-							trackRecheckTime = SimurailConfig.SERVER.physics.axleTrackRecheckTime.get();
+							trackRecheckTime = SimurailConfig.server().physics.axleTrackRecheckTime.get();
 							bogey.setChanged();
 							break t;
 						}
@@ -241,7 +241,7 @@ public class PhysicsBogeyAxle {
 							}
 							if(nextSegment.inProjectionRange(trackAxleFrame.position, trackAxleFrame.vertical)) {
 								trackSegment = nextSegment;
-								trackRecheckTime = SimurailConfig.SERVER.physics.axleTrackRecheckTime.get();
+								trackRecheckTime = SimurailConfig.server().physics.axleTrackRecheckTime.get();
 								bogey.setChanged();
 								break t;
 							}
@@ -380,7 +380,7 @@ public class PhysicsBogeyAxle {
 		trackSubLevelPose.orientation().conjugate(trackJointRot).mul(globalTrackJointRot);
 		bogeyAxleFrame.orientation(bogeyTrackJointRot);
 
-		SimurailPhysicsConfig config = SimurailConfig.SERVER.physics;
+		SimurailPhysicsConfig config = SimurailConfig.server().physics;
 		SubLevelPhysicsSystem physics = SubLevelContainer.getContainer(subLevel.getLevel()).physicsSystem();
 		if(joint == null || !joint.isValid()) {
 			joint = null;
@@ -507,7 +507,7 @@ public class PhysicsBogeyAxle {
 			return;
 		}
 
-		SimurailPhysicsConfig config = SimurailConfig.SERVER.physics;
+		SimurailPhysicsConfig config = SimurailConfig.server().physics;
 		MassData massData = subLevel.getMassTracker();
 		queuedForce.zero();
 
@@ -566,7 +566,7 @@ public class PhysicsBogeyAxle {
 
 		ServerLevel level = subLevel.getLevel();
 
-		SimurailPhysicsConfig config = SimurailConfig.SERVER.physics;
+		SimurailPhysicsConfig config = SimurailConfig.server().physics;
 		double targetSpeedFactor = config.axleTargetSpeedFactor.get();
 		targetSpeed = bogey.getSpeed() * targetSpeedFactor * bogey.getFacing().getAxisDirection().getStep();
 
@@ -627,10 +627,10 @@ public class PhysicsBogeyAxle {
 		axleFrame.transform(pivotPose, globalAxleFrame);
 		trackSegment = TrackSegmentHelper.findTrackSegment(subLevel.getLevel(), subLevel, globalAxleFrame.position, globalAxleFrame.direction, globalAxleFrame.vertical, bogey.isInverted(), bogey.options.type.trackTypes());
 		if(trackSegment != null) {
-			trackRecheckTime = SimurailConfig.SERVER.physics.axleTrackRecheckTime.get();
+			trackRecheckTime = SimurailConfig.server().physics.axleTrackRecheckTime.get();
 		}
 		else {
-			trackRecheckTime = SimurailConfig.SERVER.physics.axleTrackCheckTime.get();
+			trackRecheckTime = SimurailConfig.server().physics.axleTrackCheckTime.get();
 		}
 		bogey.setChanged();
 	}

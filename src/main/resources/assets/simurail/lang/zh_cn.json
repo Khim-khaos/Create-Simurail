@@ -290,5 +290,45 @@
 	"simurail_track_type.railways.narrow": "窄轨",
 	"simurail_track_type.railways.narrow.short": "N",
 	"simurail_track_type.railways.wide": "宽轨",
-	"simurail_track_type.railways.wide.short": "W"
+	"simurail_track_type.railways.wide.short": "W",
+
+	"simurail.ponder.physics_bogey.intro.header": "Placing Structures on Train Tracks using Physics Bogies",
+	"simurail.ponder.physics_bogey.intro.text_1": "The Physics Bogie attaches Simulated Contraptions to Train Tracks",
+	"simurail.ponder.physics_bogey.intro.text_2": "Placing a Physics Bogie on a Train Track while sneaking directly creates a Simulated Contraption...",
+	"simurail.ponder.physics_bogey.intro.text_3": "...or you can assemble one with multiple Physics Bogies",
+	"simurail.ponder.physics_bogey.intro.text_4": "Rotational Force can be used to drive Physics Bogies",
+	"simurail.ponder.physics_bogey.intro.text_5": "The direction of travel depends on the direction of rotation",
+	"simurail.ponder.physics_bogey.intro.text_6": "Provide redstone power to the top to brake",
+	"simurail.ponder.physics_bogey.intro.text_7": "Provide redstone power to the sides to turn at track junctions",
+	"simurail.ponder.physics_bogey.intro.text_8": "Right click a with an empty hand to configure its physical properties",
+	"simurail.ponder.physics_bogey.intro.text_9": "Right click a with an empty hand while sneaking to configure its visual appearance",
+
+	"simurail.ponder.automatic_coupler.intro.header": "Connecting Structures with Automatic Couplers",
+	"simurail.ponder.automatic_coupler.intro.text_1": "Automatic Couplers automatically connect to each other when close together",
+	"simurail.ponder.automatic_coupler.intro.text_2": "Provide redstone power to disconnect",
+	"simurail.ponder.automatic_coupler.intro.text_3": "Right click with an empty hand to change the length",
+	"simurail.ponder.automatic_coupler.intro.text_4": "Right click with a Wrench to change the type",
+	"simurail.ponder.automatic_coupler.intro.text_5": "Automatic Couplers of different types cannot connect",
+
+	"simurail.ponder.gangway_frame.intro.header": "Connecting Structures with Gangway Frames",
+	"simurail.ponder.gangway_frame.intro.text_1": "Gangway Frames can be used to create walkways",
+	"simurail.ponder.gangway_frame.intro.text_2": "Right click a with an empty hand to connect",
+	"simurail.ponder.gangway_frame.intro.text_3": "Provide redstone power or right click a with an empty hand to disconnect",
+	"simurail.ponder.gangway_frame.intro.text_4": "Connected Gangway Frames extend and retract together",
+	"simurail.ponder.gangway_frame.intro.text_5": "Right click with a wrench to change shape and rest length",
+	"simurail.ponder.gangway_frame.intro.text_6": "Gangway Frames only connect to matching shapes",
+
+	"simurail.ponder.gangway_frame.coupler.header": "Combining Gangway Frames with Automatic Couplers",
+	"simurail.ponder.gangway_frame.coupler.text_1": "Gangway Frames can be combined with Automatic Couplers",
+	"simurail.ponder.gangway_frame.coupler.text_2": "Gangway Frames automatically connect and disconnect when Automatic Couplers connect and disconnect",
+
+	"simurail.ponder.steering_connector.intro.header": "Connecting Physics Bogies with the Steering Connector",
+	"simurail.ponder.steering_connector.intro.text_1": "The Steering Connector is a tool that connects Physics Bogies into a steering group",
+	"simurail.ponder.steering_connector.intro.text_2": "Connected Physics Bogies follow each other at track junctions",
+	"simurail.ponder.steering_connector.intro.text_3": "Redstone power can be provided at any connected Physics Bogie to turn at track junctions",
+	"simurail.ponder.steering_connector.intro.text_4": "To disconnect, click the same position twice",
+
+	"simurail.ponder.steering_connector.coupler.header": "Connecting Physics Bogies to Automatic Couplers",
+	"simurail.ponder.steering_connector.coupler.text_1": "The Steering Connector can connect Physics Bogies to Automatic Couplers on the same Simulated Contraption",
+	"simurail.ponder.steering_connector.coupler.text_2": "Steering automatically connects and disconnects when Automatic Couplers connect and disconnect"
 }
