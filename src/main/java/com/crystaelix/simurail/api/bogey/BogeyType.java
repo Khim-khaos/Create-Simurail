@@ -21,6 +21,7 @@ import net.createmod.catnip.nbt.NBTHelper;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.codec.StreamCodec;
 import net.minecraft.resources.ResourceLocation;
+import net.minecraft.sounds.SoundEvent;
 import net.minecraft.world.phys.Vec3;
 
 public final class BogeyType {
@@ -89,6 +90,10 @@ public final class BogeyType {
 			return BogeyPropertyOverrides.GROUND_DRIVABLE_OVERRIDE.getBoolean(this);
 		}
 		return !invertible();
+	}
+
+	public SoundEvent soundEvent() {
+		return style.soundEvent.get();
 	}
 
 	public CompoundTag write() {

@@ -274,6 +274,7 @@ public class PhysicsBogeyAxle {
 			yFixedTimer = zFixedTimer = 0;
 		}
 
+		speed = 0;
 		RigidBodyHandle.of(subLevel.getLevel(), bogey.pivot).getLinearVelocity(globalAxleVel);
 
 		if(trackSegment != null) {
@@ -300,6 +301,8 @@ public class PhysicsBogeyAxle {
 
 			Sable.HELPER.getVelocity(subLevel.getLevel(), trackAxleFrame.position, globalTrackVel);
 			globalAxleVel.sub(globalTrackVel, globalRelVel);
+			subLevel.logicalPose().transformNormalInverse(globalRelVel, bogeyRelVel);
+			speed = bogeyRelVel.dot(bogeyForceFrame.direction);
 		}
 		else {
 			yFixed = zFixed = false;
@@ -308,19 +311,23 @@ public class PhysicsBogeyAxle {
 			globalAxleFrame.orientation(globalTrackRot);
 
 			clipResult = findGround(subLevel);
-			JOMLConversion.toJOML(clipResult.getLocation(), clipPos);
-			clipSubLevel = (ServerSubLevel)Sable.HELPER.getContaining(level, clipPos);
+			if(clipResult.getType() == HitResult.Type.BLOCK) {
+				JOMLConversion.toJOML(clipResult.getLocation(), clipPos);
+				clipSubLevel = (ServerSubLevel)Sable.HELPER.getContaining(level, clipPos);
 
-			bogeyForceFrame.set(axleFrame);
-			bogeyForceFrame.position.fma(0.5, axleFrame.vertical);
-			bogeyForceFrame.transform(bogey.pivotPose).transformInverse(subLevel.logicalPose());
+				bogeyForceFrame.set(axleFrame);
+				bogeyForceFrame.position.fma(0.5, axleFrame.vertical);
+				bogeyForceFrame.transform(bogey.pivotPose).transformInverse(subLevel.logicalPose());
 
-			Sable.HELPER.getVelocity(level, clipPos, globalHitVel);
-			globalAxleVel.sub(globalHitVel, globalRelVel);
+				Sable.HELPER.getVelocity(level, clipPos, globalHitVel);
+				globalAxleVel.sub(globalHitVel, globalRelVel);
+				subLevel.logicalPose().transformNormalInverse(globalRelVel, bogeyRelVel);
+				speed = bogeyRelVel.dot(bogeyForceFrame.direction);
+			}
 		}
-
-		subLevel.logicalPose().transformNormalInverse(globalRelVel, bogeyRelVel);
-		speed = bogeyRelVel.dot(bogeyForceFrame.direction);
+		if(Math.abs(speed) < 1E-3) {
+			speed = 0;
+		}
 		updateGraph(true);
 	}
 
@@ -500,6 +507,9 @@ public class PhysicsBogeyAxle {
 
 		joint.setLimit(ConstraintJointAxis.LINEAR_Z, -zLimit, zLimit);
 		bogeyJoint.setLimit(ConstraintJointAxis.LINEAR_Z, -zLimit - 0.125, zLimit + 0.125);
+
+		double xDamping = Math.max(Math.abs(speed) * 0.5, 0.01);
+		joint.setMotor(ConstraintJointAxis.LINEAR_X, 0, 0, xDamping, false, 0);
 	}
 
 	protected void updateForces(ServerSubLevel subLevel, double timeStep) {
@@ -593,7 +603,7 @@ public class PhysicsBogeyAxle {
 		double targetSpeedFactor = config.axleTargetSpeedFactor.get();
 		targetSpeed = bogey.getSpeed() * targetSpeedFactor * bogey.getFacing().getAxisDirection().getStep();
 
-		if(clipResult.getType() == HitResult.Type.MISS) {
+		if(clipResult.getType() != HitResult.Type.BLOCK) {
 			if(targetSpeed != 0) {
 				visualSpeed = targetSpeed;
 			}

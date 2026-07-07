@@ -41,11 +41,14 @@ import dev.ryanhcode.sable.api.sublevel.SubLevelContainer;
 import dev.ryanhcode.sable.companion.math.JOMLConversion;
 import dev.ryanhcode.sable.companion.math.Pose3d;
 import dev.ryanhcode.sable.companion.math.Pose3dc;
+import dev.ryanhcode.sable.sublevel.ClientSubLevel;
 import dev.ryanhcode.sable.sublevel.ServerSubLevel;
 import dev.ryanhcode.sable.sublevel.SubLevel;
 import dev.ryanhcode.sable.sublevel.system.SubLevelPhysicsSystem;
 import dev.ryanhcode.sable.util.SableNBTUtils;
 import foundry.veil.api.network.VeilPacketManager;
+import net.createmod.catnip.animation.LerpedFloat;
+import net.createmod.catnip.animation.LerpedFloat.Chaser;
 import net.createmod.catnip.data.Pair;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
@@ -108,12 +111,15 @@ public class PhysicsBogeyBlockEntity extends KineticBlockEntity implements Namea
 	protected final PhysicsBogeyAxle axleBack;
 	public double visualSpeed = 0;
 	protected double lastVisualSpeed = 0;
+	protected final LerpedFloat lerpedCurvature = LerpedFloat.linear();
 
 	// Client rendering components
 	protected final MovingQuaternionfLerp renderPivotRot = MovingQuaternionfLerp.of(2);
 	protected final MovingVector3fLerp renderPivotOffset = MovingVector3fLerp.of(2);
 	public float renderAxleOffset;
 	protected double distanceMoved;
+	protected float movementSpeed;
+	protected PhysicsBogeySounds sounds;
 
 	public PhysicsBogeyBlockEntity(BlockEntityType<?> typeIn, BlockPos pos, BlockState state) {
 		super(typeIn, pos, state);
@@ -484,8 +490,6 @@ public class PhysicsBogeyBlockEntity extends KineticBlockEntity implements Namea
 
 				axleFront.updateOffsetChange();
 				axleBack.updateOffsetChange();
-
-				// TODO sfx
 			}
 			else {
 				localPivotOffset.zero();
@@ -504,6 +508,12 @@ public class PhysicsBogeyBlockEntity extends KineticBlockEntity implements Namea
 			renderPivotOffset.step(localPivotOffset);
 			renderPivotRot.step(localPivotRot);
 			distanceMoved = Math.fma(visualSpeed, 0.05, distanceMoved);
+			if(Sable.HELPER.getContaining(this) instanceof ClientSubLevel) {
+				if(sounds == null) {
+					sounds = new PhysicsBogeySounds(this);
+				}
+				sounds.tick();
+			}
 		}
 	}
 
@@ -654,7 +664,9 @@ public class PhysicsBogeyBlockEntity extends KineticBlockEntity implements Namea
 			double offset = SimurailMath.angle(globalBasis.vertical, globalPivotVert, globalBasis.direction);
 			double velocity = globalRelAngVel.dot(globalBasis.direction);
 
-			double kLateral = getSignedLateralCurvature();
+			lerpedCurvature.chase(getSignedLateralCurvature(), timeStep * 0.05, Chaser.exp(timeStep * 0.1));
+			lerpedCurvature.tickChaser();
+			double kLateral = lerpedCurvature.getValue();
 			double speed = getMovementSpeed();
 			double centAcc = speed * speed * kLateral;
 
@@ -783,10 +795,11 @@ public class PhysicsBogeyBlockEntity extends KineticBlockEntity implements Namea
 		return super.createRenderBoundingBox().inflate(16);
 	}
 
-	protected void updateRenderData(Vector3dc pivotOffset, Quaterniondc pivotRot, float visualSpeed) {
+	protected void updateRenderData(Vector3dc pivotOffset, Quaterniondc pivotRot, float visualSpeed, float movementSpeed) {
 		this.localPivotOffset.set(pivotOffset);
 		this.localPivotRot.set(pivotRot);
 		this.visualSpeed = visualSpeed;
+		this.movementSpeed = movementSpeed;
 	}
 
 	public CompoundTag getBogeyData() {
@@ -870,6 +883,11 @@ public class PhysicsBogeyBlockEntity extends KineticBlockEntity implements Namea
 		if(!level.isClientSide()) {
 			if(Sable.HELPER.getContaining(this) instanceof ServerSubLevel subLevel) {
 				removePivot(subLevel);
+			}
+		}
+		else {
+			if(sounds != null) {
+				sounds.stop();
 			}
 		}
 		computerBehaviour.removePeripheral();

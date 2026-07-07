@@ -17,6 +17,7 @@ import net.createmod.catnip.nbt.NBTHelper;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.codec.ByteBufCodecs;
 import net.minecraft.network.codec.StreamCodec;
+import net.minecraft.sounds.SoundEvent;
 
 public final class BogeyRenderedType {
 
@@ -72,6 +73,10 @@ public final class BogeyRenderedType {
 
 	public boolean groundDrivable() {
 		return type.groundDrivable();
+	}
+
+	public SoundEvent soundEvent() {
+		return type.soundEvent();
 	}
 
 	public CompoundTag extra() {
