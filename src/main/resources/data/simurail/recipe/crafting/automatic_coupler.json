@@ -8,14 +8,8 @@
 		"CIS"
 	],
 	"key": {
-		"C": {
-			"item": "create:cogwheel"
-		},
-		"I": {
-			"item": "create:industrial_iron_block"
-		},
-		"S": {
-			"tag": "c:plates/obsidian"
-		}
+		"C": {"item": "create:cogwheel"},
+		"I": {"item": "create:industrial_iron_block"},
+		"S": {"tag": "c:plates/obsidian"}
 	}
 }

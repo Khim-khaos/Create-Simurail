@@ -15,10 +15,11 @@ public class SimurailSoundEvents {
 	public static final DeferredRegister<SoundEvent> REGISTRAR = DeferredRegister.create(Registries.SOUND_EVENT, Simurail.MOD_ID);
 
 	public static final Supplier<SoundEvent>
+	PHYSICS_BOGEY_RUMBLE = sound("block.physics_bogey.rumble"),
 	COUPLER_CONNECT = sound("block.coupler.connect"),
 	COUPLER_DISCONNECT = sound("block.coupler.disconnect"),
-	GANGWAY_CONNECT = sound("block.gangway.connect"),
-	GANGWAY_DISCONNECT = sound("block.gangway.disconnect");
+	GANGWAY_FRAME_CONNECT = sound("block.gangway_frame.connect"),
+	GANGWAY_FRAME_DISCONNECT = sound("block.gangway_frame.disconnect");
 
 	public static void register(IEventBus modEventBus) {
 		REGISTRAR.register(modEventBus);

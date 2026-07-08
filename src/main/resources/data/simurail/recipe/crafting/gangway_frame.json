@@ -8,11 +8,7 @@
 		"ISS"
 	],
 	"key": {
-		"I": {
-			"item": "create:industrial_iron_block"
-		},
-		"S": {
-			"tag": "c:plates/obsidian"
-		}
+		"I": {"item": "create:industrial_iron_block"},
+		"S": {"tag": "c:plates/obsidian"}
 	}
 }

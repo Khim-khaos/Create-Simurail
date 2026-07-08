@@ -5,8 +5,6 @@
 		"id": "simurail:inverted_physics_bogey"
 	},
 	"ingredients": [
-		{
-			"item": "simurail:physics_bogey"
-		}
+		{"item": "simurail:physics_bogey"}
 	]
 }

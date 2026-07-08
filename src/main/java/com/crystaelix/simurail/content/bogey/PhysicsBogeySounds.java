@@ -2,7 +2,7 @@ package com.crystaelix.simurail.content.bogey;
 
 import java.util.function.Supplier;
 
-import com.simibubi.create.AllSoundEvents;
+import com.crystaelix.simurail.content.SimurailSoundEvents;
 
 import dev.ryanhcode.sable.Sable;
 import dev.ryanhcode.sable.companion.math.JOMLConversion;
@@ -22,8 +22,8 @@ public class PhysicsBogeySounds {
 	protected LerpedFloat speedFactor = LerpedFloat.linear();
 	protected LerpedFloat distanceFactor = LerpedFloat.linear();
 
-	protected PhysicsBogeySoundInstance train1;
-	//protected PhysicsBogeySoundInstance train2;
+	protected PhysicsBogeySoundInstance rumble;
+	//protected PhysicsBogeySoundInstance track;
 
 	protected PhysicsBogeySounds(PhysicsBogeyBlockEntity bogey) {
 		this.bogey = bogey;
@@ -39,17 +39,17 @@ public class PhysicsBogeySounds {
 		speedFactor.tickChaser();
 		distanceFactor.tickChaser();
 
-		train1 = playIfMissing(mc, train1, AllSoundEvents.TRAIN::getMainEvent);
-		//train2 = playIfMissing(mc, train2, bogey.options.type::soundEvent);
+		rumble = playIfMissing(mc, rumble, SimurailSoundEvents.PHYSICS_BOGEY_RUMBLE::get);
+		//track = playIfMissing(mc, train2, bogey.options.type::soundEvent);
 
 		float volume = Math.min(speedFactor.getValue(), distanceFactor.getValue() * 0.01F) * 0.5F;
 		float pitch1 = Mth.clamp(speedFactor.getValue() + 0.25F, 0.5F, 1.25F);
 		//float pitch2 = Mth.clamp(speedFactor.getValue(), 0.5F, 1.5F);
 
-		train1.setPitch(pitch1);
-		train1.setVolume(volume);
-		//train2.setPitch(pitch2);
-		//train2.setVolume(volume);
+		rumble.setPitch(pitch1);
+		rumble.setVolume(volume);
+		//track.setPitch(pitch2);
+		//track.setVolume(volume);
 	}
 
 	private PhysicsBogeySoundInstance playIfMissing(Minecraft mc, PhysicsBogeySoundInstance soundInstance, Supplier<SoundEvent> soundSupplier) {
@@ -65,8 +65,8 @@ public class PhysicsBogeySounds {
 
 	public void stop() {
 		Minecraft mc = Minecraft.getInstance();
-		if(train1 != null) {
-			mc.getSoundManager().stop(train1);
+		if(rumble != null) {
+			mc.getSoundManager().stop(rumble);
 		}
 	}
 
@@ -76,7 +76,7 @@ public class PhysicsBogeySounds {
 		protected final SoundEvent sound;
 
 		protected PhysicsBogeySoundInstance(Supplier<SoundEvent> soundSupplier) {
-			super(soundSupplier.get(), SoundSource.BLOCKS, SoundInstance.createUnseededRandom());
+			super(soundSupplier.get(), SoundSource.AMBIENT, SoundInstance.createUnseededRandom());
 			this.soundSupplier = soundSupplier;
 			this.sound = soundSupplier.get();
 			this.attenuation = Attenuation.LINEAR;

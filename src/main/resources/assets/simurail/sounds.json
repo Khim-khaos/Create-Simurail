@@ -1,4 +1,13 @@
 {
+	"block.physics_bogey.rumble": {
+		"sounds": [
+			{
+				"type": "event",
+				"name": "create:train"
+			}
+		],
+		"subtitle": "subtitles.simurail.block.physics_bogey.rumble"
+	},
 	"block.coupler.connect": {
 		"sounds": [
 			{
@@ -17,22 +26,22 @@
 		],
 		"subtitle": "subtitles.simurail.block.coupler.disconnect"
 	},
-	"block.gangway.connect": {
+	"block.gangway_frame.connect": {
 		"sounds": [
 			{
 				"type": "event",
 				"name": "simulated:block.docking_connector.extend"
 			}
 		],
-		"subtitle": "subtitles.simurail.block.gangway.connect"
+		"subtitle": "subtitles.simurail.block.gangway_frame.connect"
 	},
-	"block.gangway.disconnect": {
+	"block.gangway_frame.disconnect": {
 		"sounds": [
 			{
 				"type": "event",
 				"name": "simulated:block.docking_connector.retract"
 			}
 		],
-		"subtitle": "subtitles.simurail.block.gangway.disconnect"
+		"subtitle": "subtitles.simurail.block.gangway_frame.disconnect"
 	}
 }

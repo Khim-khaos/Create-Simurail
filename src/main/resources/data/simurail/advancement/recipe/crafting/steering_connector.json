@@ -1,0 +1,26 @@
+{
+	"parent": "minecraft:recipes/root",
+	"criteria": {
+		"has_ingredient": {
+			"conditions": {
+				"items": [{
+					"items": "#c:plates/obsidian"
+				}]
+			},
+			"trigger": "minecraft:inventory_changed"
+		},
+		"has_recipe": {
+			"conditions": {
+				"recipe": "simurail:crafting/steering_connector"
+			},
+			"trigger": "minecraft:recipe_unlocked"
+		}
+	},
+	"requirements": [[
+		"has_ingredient",
+		"has_recipe"
+	]],
+	"rewards": {
+		"recipes": ["simurail:crafting/steering_connector"]
+	}
+}

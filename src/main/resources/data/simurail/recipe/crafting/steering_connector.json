@@ -5,14 +5,10 @@
 		"id": "simurail:steering_connector"
 	},
 	"pattern": [
-		"ICI"
+		"SCS"
 	],
 	"key": {
-		"I": {
-			"item": "create:industrial_iron_block"
-		},
-		"C": {
-			"item": "create:minecart_coupling"
-		}
+		"S": {"item": "c:plates/obsidian"},
+		"C": {"item": "create:minecart_coupling"}
 	}
 }

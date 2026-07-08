@@ -305,8 +305,8 @@ public class AutomaticCouplerBlockEntity extends SmartBlockEntity implements Men
 			if(!level.isClientSide()) {
 				setChanged();
 				sendData();
-				level.playSound(null, getBlockPos(), SimurailSoundEvents.GANGWAY_CONNECT.get(), SoundSource.BLOCKS, 0.25F, 1F);
-				level.playSound(null, gangwayPartnerPos, SimurailSoundEvents.GANGWAY_CONNECT.get(), SoundSource.BLOCKS, 0.25F, 1F);
+				level.playSound(null, getBlockPos(), SimurailSoundEvents.GANGWAY_FRAME_CONNECT.get(), SoundSource.BLOCKS, 0.25F, 1F);
+				level.playSound(null, gangwayPartnerPos, SimurailSoundEvents.GANGWAY_FRAME_CONNECT.get(), SoundSource.BLOCKS, 0.25F, 1F);
 			}
 		}
 	}
@@ -335,7 +335,7 @@ public class AutomaticCouplerBlockEntity extends SmartBlockEntity implements Men
 		if(gangwayPartnerPos != null && level.getBlockEntity(gangwayPartnerPos) instanceof GangwayFrame partner) {
 			partner.setGangwayPartnerReverse(null);
 			if(!level.isClientSide()) {
-				level.playSound(null, gangwayPartnerPos, SimurailSoundEvents.GANGWAY_DISCONNECT.get(), SoundSource.BLOCKS, 0.25F, 1F);
+				level.playSound(null, gangwayPartnerPos, SimurailSoundEvents.GANGWAY_FRAME_DISCONNECT.get(), SoundSource.BLOCKS, 0.25F, 1F);
 			}
 		}
 		gangwayPartnerPos = null;
@@ -343,7 +343,7 @@ public class AutomaticCouplerBlockEntity extends SmartBlockEntity implements Men
 		if(!level.isClientSide()) {
 			setChanged();
 			sendData();
-			level.playSound(null, getBlockPos(), SimurailSoundEvents.GANGWAY_DISCONNECT.get(), SoundSource.BLOCKS, 0.25F, 1F);
+			level.playSound(null, getBlockPos(), SimurailSoundEvents.GANGWAY_FRAME_DISCONNECT.get(), SoundSource.BLOCKS, 0.25F, 1F);
 		}
 	}
 

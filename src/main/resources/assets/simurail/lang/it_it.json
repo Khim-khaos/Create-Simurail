@@ -73,10 +73,11 @@
 	"gui.simurail.gangway_frame.shape": "Shape",
 	"gui.simurail.gangway_frame.rest_length": "Rest Length",
 
+	"subtitles.simurail.block.physics_bogey.rumble": "Rumore di ruote di Carrello Fisico",
 	"subtitles.simurail.block.coupler.connect": "Accopiatore si Connette",
 	"subtitles.simurail.block.coupler.disconnect": "Accopiatore si Disconette",
-	"subtitles.simurail.block.gangway.connect": "Gangway connects",
-	"subtitles.simurail.block.gangway.disconnect": "Gangway disconnects",
+	"subtitles.simurail.block.gangway_frame.connect": "Gangway connects",
+	"subtitles.simurail.block.gangway_frame.disconnect": "Gangway disconnects",
 
 	"force_group.simurail.traction": "Traction",
 	"force_group.simurail.brake": "Brake",

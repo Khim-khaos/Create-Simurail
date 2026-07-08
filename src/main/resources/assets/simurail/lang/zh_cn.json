@@ -73,10 +73,11 @@
 	"gui.simurail.gangway_frame.shape": "形状",
 	"gui.simurail.gangway_frame.rest_length": "静止长度",
 
+	"subtitles.simurail.block.physics_bogey.rumble": "物理转向架：移动",
 	"subtitles.simurail.block.coupler.connect": "车钩：连接",
 	"subtitles.simurail.block.coupler.disconnect": "车钩：断开",
-	"subtitles.simurail.block.gangway.connect": "风挡：连接",
-	"subtitles.simurail.block.gangway.disconnect": "风挡：断开",
+	"subtitles.simurail.block.gangway_frame.connect": "风挡：连接",
+	"subtitles.simurail.block.gangway_frame.disconnect": "风挡：断开",
 
 	"force_group.simurail.traction": "牵引力",
 	"force_group.simurail.brake": "煞车力",
